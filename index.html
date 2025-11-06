@@ -280,47 +280,39 @@
 
   // Create Tournament
   document.getElementById('tournamentForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const resBox = document.getElementById('tournamentResponse');
+  e.preventDefault();
+  const resBox = document.getElementById('tournamentResponse');
 
-    const data = {
-      name: document.getElementById('tournament-name').value,
-      type: document.getElementById('tournament-type').value,
-      start_date: document.getElementById('start-date').value,
-      start_time: document.getElementById('start-time').value,
-      max_participants: document.getElementById('max-participants').value
-    };
+  const tournamentName = document.getElementById('tournament-name').value.trim();
+  const type = document.getElementById('tournament-type').value;
+  const startDate = document.getElementById('start-date').value;
+  const startTime = document.getElementById('start-time').value;
+  const maxParticipants = document.getElementById('max-participants').value;
 
-    console.log("Sending tournament data:", data);
-    resBox.textContent = "Creating tournament...";
-    resBox.style.color = "blue";
+  const data = {
+    tournamentName,
+    type,
+    startDate,
+    startTime,
+    maxParticipants: parseInt(maxParticipants)
+  };
 
-    try {
-      const res = await fetch("https://d33.app.n8n.cloud/webhook/create-tournament", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-      });
+  console.log("Sending data to n8n:", data);
 
-      console.log("Response status:", res.status);
-      
-      if (res.ok) {
-        const result = await res.text();
-        resBox.textContent = "✅ Tournament created successfully!";
-        resBox.style.color = "green";
-        document.getElementById('tournamentForm').reset();
-        loadTournaments(); // Refresh tournament list
-      } else {
-        const errorText = await res.text();
-        resBox.textContent = "❌ Error: " + (errorText || res.statusText);
-        resBox.style.color = "red";
-      }
-    } catch (err) {
-      console.error("Network error:", err);
-      resBox.textContent = "❌ Network error - cannot reach server";
-      resBox.style.color = "red";
-    }
-  });
+  try {
+    const res = await fetch("https://d33.app.n8n.cloud/webhook/create-tournament", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    });
+
+    const result = await res.json();
+    console.log(result);
+  } catch (err) {
+    console.error("Network error:", err);
+  }
+});
+
 
   // Register Participant
   document.getElementById('registerForm').addEventListener('submit', async (e) => {
@@ -392,3 +384,4 @@
   </script>
 </body>
 </html>
+
