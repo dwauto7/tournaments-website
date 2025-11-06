@@ -1,17 +1,56 @@
 <!DOCTYPE HTML>
-<!--
-	Solid State by HTML5 UP
-	html5up.net | @ajlkn
-	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
--->
 <html>
 	<head>
-		<title>Solid State by HTML5 UP</title>
+		<title>AI Blizzard Tournaments</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 		<link rel="stylesheet" href="assets/css/main.css" />
 		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
 	</head>
+	<body class="is-preload">
+		<div id="page-wrapper">
+			<!-- Header -->
+			<header id="header" class="alt">
+				<h1><a href="index.html">AI Blizzard Tournaments</a></h1>
+				<nav>
+					<a href="#menu">Menu</a>
+				</nav>
+			</header>
+
+			<!-- Menu -->
+			<nav id="menu">
+				<div class="inner">
+					<h2>Menu</h2>
+					<ul class="links">
+						<li><a href="index.html">Home</a></li>
+						<li><a href="#register">Register</a></li>
+						<li><a href="#about">About</a></li>
+					</ul>
+					<a href="#" class="close">Close</a>
+				</div>
+			</nav>
+
+			<!-- Banner -->
+			<section id="banner">
+				<div class="inner">
+					<div class="logo"><span class="icon fa-gem"></span></div>
+					<h2>AI Blizzard Tournaments</h2>
+					<p>Competitive AI gaming tournaments</p>
+				</div>
+			</section>
+
+			<!-- Your register section and other content -->
+
+		</div>
+
+		<script src="assets/js/jquery.min.js"></script>
+		<script src="assets/js/jquery.scrollex.min.js"></script>
+		<script src="assets/js/browser.min.js"></script>
+		<script src="assets/js/breakpoints.min.js"></script>
+		<script src="assets/js/util.js"></script>
+		<script src="assets/js/main.js"></script>
+	</body>
+</html>
 	<body class="is-preload">
 
 		<!-- Page Wrapper -->
@@ -76,56 +115,66 @@
 								</div>
 							</section>
 
-						<!-- Three -->
-							<section id="three" class="wrapper spotlight style3">
-								<div class="inner">
-									<a href="#" class="image"><img src="images/pic03.jpg" alt="" /></a>
-									<div class="content">
-										<h2 class="major">Nullam dignissim</h2>
-										<p>Lorem ipsum dolor sit amet, etiam lorem adipiscing elit. Cras turpis ante, nullam sit amet turpis non, sollicitudin posuere urna. Mauris id tellus arcu. Nunc vehicula id nulla dignissim dapibus. Nullam ultrices, neque et faucibus viverra, ex nulla cursus.</p>
-										<a href="#" class="special">Learn more</a>
-									</div>
-								</div>
+													<!-- Register Section -->
+							<section id="register" class="wrapper style2 special">
+							  <div class="inner">
+							    <header class="major">
+							      <h2>Register for Tournament</h2>
+							    </header>
+							
+							    <form id="registerForm">
+							      <input type="text" id="name" placeholder="Name" required />
+							      <input type="text" id="phone" placeholder="+60123456789" required />
+							      <input type="email" id="email" placeholder="Email" required />
+							      <select id="handicap" required>
+							        <option value="">Select Handicap</option>
+							        <option value="Beginner">Beginner</option>
+							        <option value="Intermediate">Intermediate</option>
+							        <option value="Advanced">Advanced</option>
+							        <option value="Expert">Expert</option>
+							      </select>
+							      <button type="submit">Register</button>
+							      <p id="responseMessage"></p>
+							    </form>
+							  </div>
 							</section>
+							
+							<script>
+							document.getElementById('registerForm').addEventListener('submit', async (e) => {
+							  e.preventDefault();
+							  const data = {
+							    name: document.getElementById('name').value,
+							    phone: document.getElementById('phone').value,
+							    email: document.getElementById('email').value,
+							    handicap: document.getElementById('handicap').value,
+							  };
+							
+							  const responseBox = document.getElementById('responseMessage');
+							  responseBox.textContent = "Submitting...";
+							
+							  try {
+							    const res = await fetch("https://d33.app.n8n.cloud/webhook/register", {
+							      method: "POST",
+							      headers: { "Content-Type": "application/json" },
+							      body: JSON.stringify(data)
+							    });
+							    const text = await res.text();
+							    responseBox.textContent = text;
+							  } catch (err) {
+							    responseBox.textContent = "Error submitting form.";
+							    console.error(err);
+							  }
+							});
+							</script>
+							
+							<!-- Keep these existing JS imports -->
+							<script src="assets/js/jquery.min.js"></script>
+							<script src="assets/js/jquery.scrollex.min.js"></script>
+							<script src="assets/js/browser.min.js"></script>
+							<script src="assets/js/breakpoints.min.js"></script>
+							<script src="assets/js/util.js"></script>
+							<script src="assets/js/main.js"></script>
 
-						<!-- Four -->
-							<section id="four" class="wrapper alt style1">
-								<div class="inner">
-									<h2 class="major">Vitae phasellus</h2>
-									<p>Cras mattis ante fermentum, malesuada neque vitae, eleifend erat. Phasellus non pulvinar erat. Fusce tincidunt, nisl eget mattis egestas, purus ipsum consequat orci, sit amet lobortis lorem lacus in tellus. Sed ac elementum arcu. Quisque placerat auctor laoreet.</p>
-									<section class="features">
-										<article>
-											<a href="#" class="image"><img src="images/pic04.jpg" alt="" /></a>
-											<h3 class="major">Sed feugiat lorem</h3>
-											<p>Lorem ipsum dolor sit amet, consectetur adipiscing vehicula id nulla dignissim dapibus ultrices.</p>
-											<a href="#" class="special">Learn more</a>
-										</article>
-										<article>
-											<a href="#" class="image"><img src="images/pic05.jpg" alt="" /></a>
-											<h3 class="major">Nisl placerat</h3>
-											<p>Lorem ipsum dolor sit amet, consectetur adipiscing vehicula id nulla dignissim dapibus ultrices.</p>
-											<a href="#" class="special">Learn more</a>
-										</article>
-										<article>
-											<a href="#" class="image"><img src="images/pic06.jpg" alt="" /></a>
-											<h3 class="major">Ante fermentum</h3>
-											<p>Lorem ipsum dolor sit amet, consectetur adipiscing vehicula id nulla dignissim dapibus ultrices.</p>
-											<a href="#" class="special">Learn more</a>
-										</article>
-										<article>
-											<a href="#" class="image"><img src="images/pic07.jpg" alt="" /></a>
-											<h3 class="major">Fusce consequat</h3>
-											<p>Lorem ipsum dolor sit amet, consectetur adipiscing vehicula id nulla dignissim dapibus ultrices.</p>
-											<a href="#" class="special">Learn more</a>
-										</article>
-									</section>
-									<ul class="actions">
-										<li><a href="#" class="button">Browse All</a></li>
-									</ul>
-								</div>
-							</section>
-
-					</section>
 
 				<!-- Footer -->
 					<section id="footer">
@@ -180,4 +229,5 @@
 			<script src="assets/js/main.js"></script>
 
 	</body>
+
 </html>
