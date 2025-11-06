@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html>
 	<head>
-		<title>AI Blizzard Tournaments</title>
+		<title>TournaMate - AI Blizzard Tournaments</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 		<link rel="stylesheet" href="assets/css/main.css" />
@@ -14,7 +14,7 @@
 
 			<!-- Header -->
 			<header id="header" class="alt">
-				<h1><a href="index.html">AI Blizzard Tournaments</a></h1>
+				<h1><a href="index.html">TournaMate</a></h1>
 				<nav>
 					<a href="#menu">Menu</a>
 				</nav>
@@ -25,9 +25,10 @@
 				<div class="inner">
 					<h2>Menu</h2>
 					<ul class="links">
-						<li><a href="index.html">Home</a></li>
-						<li><a href="#register">Register</a></li>
-						<li><a href="#about">About</a></li>
+						<li><a href="#banner">Home</a></li>
+						<li><a href="#flow">How It Works</a></li>
+						<li><a href="#tournaments">Tournaments</a></li>
+						<li><a href="#registration">Register</a></li>
 					</ul>
 					<a href="#" class="close">Close</a>
 				</div>
@@ -37,60 +38,125 @@
 			<section id="banner">
 				<div class="inner">
 					<div class="logo"><span class="icon fa-gem"></span></div>
-					<h2>AI Blizzard Tournaments</h2>
-					<p>Competitive AI gaming tournaments</p>
+					<h2>TournaMate</h2>
+					<p>Your AI-Powered Tournament Assistant</p>
+					<div class="actions special">
+						<a href="#flow" class="button primary">How It Works</a>
+						<a href="#tournaments" class="button">Create Tournament</a>
+						<a href="#registration" class="button">Register Now</a>
+					</div>
 				</div>
 			</section>
 
 			<!-- Wrapper -->
 			<section id="wrapper">
 
-				<!-- One -->
-				<section id="one" class="wrapper spotlight style1">
+				<!-- Section 1: Flow Explanation -->
+				<section id="flow" class="wrapper spotlight style1">
 					<div class="inner">
-						<a href="#" class="image"><img src="images/pic01.jpg" alt="AI Gaming" /></a>
 						<div class="content">
-							<h2 class="major">Competitive AI Battles</h2>
-							<p>Join the most exciting AI tournaments where machines compete for supremacy. Test your algorithms against the best in the field.</p>
-							<a href="#register" class="special">Register Now</a>
+							<h2 class="major">How TournaMate Works</h2>
+							<div class="flow-steps">
+								<div class="step">
+									<h3>1. Select Tournament</h3>
+									<p>Browse available tournaments and choose your competition</p>
+								</div>
+								<div class="step">
+									<h3>2. Register & Provide Details</h3>
+									<p>Enter your information and skill level for proper grouping</p>
+								</div>
+								<div class="step">
+									<h3>3. Smart Grouping</h3>
+									<p>12 hours before start, participants are grouped by skill level</p>
+								</div>
+								<div class="step">
+									<h3>4. Tournament Time!</h3>
+									<p>View your group and compete with evenly matched opponents</p>
+								</div>
+							</div>
+							<a href="#registration" class="special">Get Started</a>
 						</div>
 					</div>
 				</section>
 
-				<!-- Two -->
-				<section id="two" class="wrapper alt spotlight style2">
+				<!-- Section 2: Tournaments -->
+				<section id="tournaments" class="wrapper alt style2">
 					<div class="inner">
-						<a href="#" class="image"><img src="images/pic02.jpg" alt="Tournament" /></a>
-						<div class="content">
-							<h2 class="major">Multiple Skill Levels</h2>
-							<p>Whether you're a beginner or expert, we have tournaments for every skill level. Improve your AI and climb the ranks.</p>
-							<a href="#register" class="special">View Categories</a>
-						</div>
+						<h2 class="major">Create Tournament</h2>
+						<p>Set up your own tournament in minutes</p>
+						
+						<form id="tournamentForm">
+							<div class="row gtr-uniform">
+								<div class="col-6 col-12-xsmall">
+									<label for="tournament-type">Tournament Type</label>
+									<select id="tournament-type" required>
+										<option value="">Select Type</option>
+										<option value="golf">Golf Tournament</option>
+										<option value="gaming">Gaming Tournament</option>
+										<option value="other">Other</option>
+									</select>
+								</div>
+								<div class="col-6 col-12-xsmall">
+									<label for="tournament-name">Tournament Name</label>
+									<input type="text" id="tournament-name" placeholder="Enter tournament name" required />
+								</div>
+								<div class="col-6 col-12-xsmall">
+									<label for="start-date">Start Date</label>
+									<input type="date" id="start-date" required />
+								</div>
+								<div class="col-6 col-12-xsmall">
+									<label for="start-time">Start Time</label>
+									<input type="time" id="start-time" required />
+								</div>
+								<div class="col-12">
+									<label for="max-participants">Max Participants</label>
+									<input type="number" id="max-participants" placeholder="50" min="2" max="500" required />
+								</div>
+								<div class="col-12">
+									<button type="submit" class="button primary">Create Tournament</button>
+									<p id="tournamentResponse"></p>
+								</div>
+							</div>
+						</form>
 					</div>
 				</section>
 
-				<!-- Register Section -->
-				<section id="register" class="wrapper style2 special">
+				<!-- Section 3: Registration -->
+				<section id="registration" class="wrapper style3 special">
 					<div class="inner">
 						<header class="major">
 							<h2>Register for Tournament</h2>
-							<p>Join our next AI competition</p>
+							<p>Select a tournament and join the competition</p>
 						</header>
 
 						<form id="registerForm">
-							<input type="text" id="name" placeholder="Name" required />
+							<select id="tournament-select" required>
+								<option value="">Select Tournament</option>
+								<!-- Tournaments will be populated dynamically -->
+							</select>
+							<input type="text" id="name" placeholder="Full Name" required />
 							<input type="text" id="phone" placeholder="+60123456789" required />
-							<input type="email" id="email" placeholder="Email" required />
+							<input type="email" id="email" placeholder="Email Address" required />
 							<select id="handicap" required>
-								<option value="">Select Handicap</option>
+								<option value="">Select Skill Level</option>
 								<option value="Beginner">Beginner</option>
 								<option value="Intermediate">Intermediate</option>
 								<option value="Advanced">Advanced</option>
 								<option value="Expert">Expert</option>
 							</select>
-							<button type="submit">Register</button>
+							<button type="submit" class="button primary">Register Now</button>
 							<p id="responseMessage"></p>
 						</form>
+
+						<div class="registration-info">
+							<h3>What happens after registration?</h3>
+							<ul>
+								<li>✓ Your data is securely stored in our system</li>
+								<li>✓ You'll receive SMS confirmation via n8n workflow</li>
+								<li>✓ 12 hours before tournament: Group assignments sent</li>
+								<li>✓ View your group members and prepare to compete!</li>
+							</ul>
+						</div>
 					</div>
 				</section>
 
@@ -100,14 +166,13 @@
 			<section id="footer">
 				<div class="inner">
 					<h2 class="major">Get in touch</h2>
-					<p>Have questions about our tournaments? Reach out to our team for more information.</p>
+					<p>Questions about tournaments or need assistance? Contact our team.</p>
 					<ul class="contact">
-						<li class="icon solid fa-envelope"><a href="#">info@aiblizzard.work</a></li>
-						<li class="icon brands fa-twitter"><a href="#">twitter.com/aiblizzard</a></li>
-						<li class="icon brands fa-discord"><a href="#">Discord Server</a></li>
+						<li class="icon solid fa-envelope"><a href="#">support@aiblizzard.work</a></li>
+						<li class="icon brands fa-discord"><a href="#">Join our Discord</a></li>
 					</ul>
 					<ul class="copyright">
-						<li>&copy; AI Blizzard. All rights reserved.</li>
+						<li>&copy; TournaMate by AI Blizzard. All rights reserved.</li>
 					</ul>
 				</div>
 			</section>
@@ -122,11 +187,13 @@
 		<script src="assets/js/util.js"></script>
 		<script src="assets/js/main.js"></script>
 
-		<!-- Registration Form Script -->
+		<!-- Custom Scripts -->
 		<script>
+		// Registration Form
 		document.getElementById('registerForm').addEventListener('submit', async (e) => {
 			e.preventDefault();
 			const data = {
+				tournament: document.getElementById('tournament-select').value,
 				name: document.getElementById('name').value,
 				phone: document.getElementById('phone').value,
 				email: document.getElementById('email').value,
@@ -134,7 +201,7 @@
 			};
 
 			const responseBox = document.getElementById('responseMessage');
-			responseBox.textContent = "Submitting...";
+			responseBox.textContent = "Submitting registration...";
 
 			try {
 				const res = await fetch("https://d33.app.n8n.cloud/webhook/register", {
@@ -143,9 +210,37 @@
 					body: JSON.stringify(data)
 				});
 				const text = await res.text();
-				responseBox.textContent = text;
+				responseBox.textContent = "Registration successful! You'll receive SMS confirmation shortly.";
 			} catch (err) {
-				responseBox.textContent = "Error submitting form.";
+				responseBox.textContent = "Error submitting registration. Please try again.";
+				console.error(err);
+			}
+		});
+
+		// Tournament Creation Form
+		document.getElementById('tournamentForm').addEventListener('submit', async (e) => {
+			e.preventDefault();
+			const data = {
+				type: document.getElementById('tournament-type').value,
+				name: document.getElementById('tournament-name').value,
+				date: document.getElementById('start-date').value,
+				time: document.getElementById('start-time').value,
+				maxParticipants: document.getElementById('max-participants').value,
+			};
+
+			const responseBox = document.getElementById('tournamentResponse');
+			responseBox.textContent = "Creating tournament...";
+
+			try {
+				const res = await fetch("https://d33.app.n8n.cloud/webhook/create-tournament", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify(data)
+				});
+				const text = await res.text();
+				responseBox.textContent = "Tournament created successfully!";
+			} catch (err) {
+				responseBox.textContent = "Error creating tournament. Please try again.";
 				console.error(err);
 			}
 		});
