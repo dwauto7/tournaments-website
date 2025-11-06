@@ -251,53 +251,66 @@
   <script src="assets/js/util.js"></script>
   <script src="assets/js/main.js"></script>
 
-  <!-- Custom Scripts -->
-  <script>
-  // Load tournaments for dropdowns
-  async function loadTournaments() {
-    try {
-      const res = await fetch("https://d33.app.n8n.cloud/webhook/list-tournaments");
-      const tournaments = await res.json();
+ <!-- Custom Scripts -->
+<script>
+// Load tournaments for dropdowns
+async function loadTournaments() {
+  try {
+    const res = await fetch("https://d33.app.n8n.cloud/webhook/list-tournaments");
+    const tournaments = await res.json();
 
-      const regSelect = document.getElementById('tournament-select');
-      const groupSelect = document.getElementById('group-tournament-select');
-      regSelect.innerHTML = '<option value="">Select Tournament</option>';
-      groupSelect.innerHTML = '<option value="">Select Tournament</option>';
+    const regSelect = document.getElementById('tournament-select');
+    const groupSelect = document.getElementById('group-tournament-select');
+    regSelect.innerHTML = '<option value="">Select Tournament</option>';
+    groupSelect.innerHTML = '<option value="">Select Tournament</option>';
 
-      tournaments.forEach(t => {
-        const opt1 = new Option(t.name, t.id);
-        const opt2 = new Option(t.name, t.id);
-        regSelect.add(opt1);
-        groupSelect.add(opt2);
-      });
-    } catch (err) {
-      console.error("Error loading tournaments:", err);
-    }
+    tournaments.forEach(t => {
+      const opt1 = new Option(t.name, t.id);
+      const opt2 = new Option(t.name, t.id);
+      regSelect.add(opt1);
+      groupSelect.add(opt2);
+    });
+  } catch (err) {
+    console.error("Error loading tournaments:", err);
   }
+}
 
-  // Load tournaments on page load
-  loadTournaments();
+// Load tournaments on page load
+loadTournaments();
 
-  // Create Tournament
-  document.getElementById('tournamentForm').addEventListener('submit', async (e) => {
+// Create Tournament - WITH CORRECT FIELD NAMES
+document.getElementById('tournamentForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const resBox = document.getElementById('tournamentResponse');
 
-  const tournamentName = document.getElementById('tournament-name').value.trim();
+  // Get all values - USE CORRECT VARIABLE NAMES
+  const name = document.getElementById('tournament-name').value.trim();
   const type = document.getElementById('tournament-type').value;
-  const startDate = document.getElementById('start-date').value;
-  const startTime = document.getElementById('start-time').value;
-  const maxParticipants = document.getElementById('max-participants').value;
+  const start_date = document.getElementById('start-date').value;
+  const start_time = document.getElementById('start-time').value;
+  const max_participants = document.getElementById('max-participants').value;
 
+  console.log("Form values:", { name, type, start_date, start_time, max_participants });
+
+  // Validate all fields
+  if (!name || !type || !start_date || !start_time || !max_participants) {
+    resBox.textContent = "❌ Please fill in all fields";
+    resBox.style.color = "red";
+    return;
+  }
+
+  // USE THE CORRECT FIELD NAMES THAT N8N EXPECTS
   const data = {
-    tournamentName,
-    type,
-    startDate,
-    startTime,
-    max_participants: parseInt(maxParticipants)
+    name: name,
+    type: type,
+    start_date: start_date,
+    start_time: start_time,
+    max_participants: parseInt(max_participants)
   };
 
-  console.log("Sending data to n8n:", data);
+  console.log("Sending to n8n:", data);
+  resBox.textContent = "Creating tournament...";
+  resBox.style.color = "blue";
 
   try {
     const res = await fetch("https://d33.app.n8n.cloud/webhook/create-tournament", {
@@ -306,84 +319,96 @@
       body: JSON.stringify(data)
     });
 
-    const result = await res.json();
-    console.log(result);
+    console.log("Response status:", res.status);
+    
+    if (res.ok) {
+      resBox.textContent = "✅ Tournament created successfully!";
+      resBox.style.color = "green";
+      document.getElementById('tournamentForm').reset();
+      loadTournaments();
+    } else {
+      const error = await res.json();
+      resBox.textContent = "❌ Error: " + (error.errorMessage || "Failed to create tournament");
+      resBox.style.color = "red";
+    }
   } catch (err) {
     console.error("Network error:", err);
+    resBox.textContent = "❌ Network error - cannot reach server";
+    resBox.style.color = "red";
   }
 });
 
-
-  // Register Participant
-  document.getElementById('registerForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const data = {
-      tournament: document.getElementById('tournament-select').value,
-      name: document.getElementById('name').value,
-      phone: document.getElementById('phone').value,
-      email: document.getElementById('email').value,
-      handicap: document.getElementById('handicap-number').value,
-      skill_level: document.getElementById('skill-level').value
-    };
+// Register Participant
+document.getElementById('registerForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const data = {
+    tournament: document.getElementById('tournament-select').value,
+    name: document.getElementById('name').value,
+    phone: document.getElementById('phone').value,
+    email: document.getElementById('email').value,
+    handicap: document.getElementById('handicap-number').value,
+    skill_level: document.getElementById('skill-level').value
+  };
+  
+  const box = document.getElementById('responseMessage');
+  box.textContent = "Submitting registration...";
+  box.style.color = "blue";
+  
+  try {
+    const res = await fetch("https://d33.app.n8n.cloud/webhook/register", {
+      method: "POST", 
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    });
     
-    const box = document.getElementById('responseMessage');
-    box.textContent = "Submitting registration...";
-    box.style.color = "blue";
-    
-    try {
-      const res = await fetch("https://d33.app.n8n.cloud/webhook/register", {
-        method: "POST", 
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-      });
-      
-      if (res.ok) {
-        box.textContent = "✅ Registration successful! You'll receive SMS confirmation shortly.";
-        box.style.color = "green";
-        document.getElementById('registerForm').reset();
-      } else {
-        box.textContent = "❌ Registration failed. Please try again.";
-        box.style.color = "red";
-      }
-    } catch (err) {
-      box.textContent = "❌ Network error submitting registration.";
+    if (res.ok) {
+      box.textContent = "✅ Registration successful! You'll receive SMS confirmation shortly.";
+      box.style.color = "green";
+      document.getElementById('registerForm').reset();
+    } else {
+      box.textContent = "❌ Registration failed. Please try again.";
       box.style.color = "red";
-      console.error(err);
     }
-  });
+  } catch (err) {
+    box.textContent = "❌ Network error submitting registration.";
+    box.style.color = "red";
+    console.error(err);
+  }
+});
 
-  // View Groups
-  document.getElementById('groupsForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const tournamentId = document.getElementById('group-tournament-select').value;
-    const tableBody = document.getElementById('groupsTableBody');
-    document.getElementById('groupsResults').style.display = 'block';
-    tableBody.innerHTML = '<tr><td colspan="4">Loading groups...</td></tr>';
+// View Groups
+document.getElementById('groupsForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const tournamentId = document.getElementById('group-tournament-select').value;
+  const tableBody = document.getElementById('groupsTableBody');
+  document.getElementById('groupsResults').style.display = 'block';
+  tableBody.innerHTML = '<tr><td colspan="4">Loading groups...</td></tr>';
+  
+  try {
+    const res = await fetch(`https://d33.app.n8n.cloud/webhook/tournament-groups?tournamentId=${tournamentId}`);
+    const data = await res.json();
     
-    try {
-      const res = await fetch(`https://d33.app.n8n.cloud/webhook/tournament-groups?tournamentId=${tournamentId}`);
-      const data = await res.json();
-      
-      if (!data.success || !data.groups || Object.keys(data.groups).length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="4">Groups not available yet. Please check again later.</td></tr>';
-        return;
-      }
-      
-      let html = '';
-      for (const [groupName, members] of Object.entries(data.groups)) {
-        const players = members.map(m => m.name).join(', ');
-        const avg = (members.reduce((sum, m) => sum + (m.handicap || 0), 0) / members.length).toFixed(1);
-        html += `<tr><td>${groupName}</td><td>${players}</td><td>${avg}</td><td>—</td></tr>`;
-      }
-      tableBody.innerHTML = html;
-    } catch (err) {
-      tableBody.innerHTML = '<tr><td colspan="4">Error loading groups.</td></tr>';
-      console.error(err);
+    if (!data.success || !data.groups || Object.keys(data.groups).length === 0) {
+      tableBody.innerHTML = '<tr><td colspan="4">Groups not available yet. Please check again later.</td></tr>';
+      return;
     }
-  });
-  </script>
+    
+    let html = '';
+    for (const [groupName, members] of Object.entries(data.groups)) {
+      const players = members.map(m => m.name).join(', ');
+      const avg = (members.reduce((sum, m) => sum + (m.handicap || 0), 0) / members.length).toFixed(1);
+      html += `<tr><td>${groupName}</td><td>${players}</td><td>${avg}</td><td>—</td></tr>`;
+    }
+    tableBody.innerHTML = html;
+  } catch (err) {
+    tableBody.innerHTML = '<tr><td colspan="4">Error loading groups.</td></tr>';
+    console.error(err);
+  }
+});
+</script>
 </body>
 </html>
+
 
 
 
