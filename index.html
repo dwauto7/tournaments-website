@@ -254,6 +254,7 @@
 
   <!-- Custom Scripts -->
   <script>
+ <script>
   // Load tournaments for dropdowns
   async function loadTournaments() {
     try {
@@ -262,6 +263,9 @@
 
       const regSelect = document.getElementById('tournament-select');
       const groupSelect = document.getElementById('group-tournament-select');
+      regSelect.innerHTML = '<option value="">Select Tournament</option>';
+      groupSelect.innerHTML = '<option value="">Select Tournament</option>';
+
       tournaments.forEach(t => {
         const opt1 = new Option(t.name, t.id);
         const opt2 = new Option(t.name, t.id);
@@ -272,33 +276,49 @@
       console.error("Error loading tournaments:", err);
     }
   }
+
   loadTournaments();
 
-  // Create Tournament
+  // ✅ Create Tournament - fixed version
   document.getElementById('tournamentForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const data = {
-      type: document.getElementById('tournament-type').value,
-      name: document.getElementById('tournament-name').value,
-      date: document.getElementById('start-date').value,
-      time: document.getElementById('start-time').value,
-      maxParticipants: document.getElementById('max-participants').value
-    };
     const resBox = document.getElementById('tournamentResponse');
+
+    const data = {
+      name: document.getElementById('tournament-name').value,
+      type: document.getElementById('tournament-type').value,
+      start_date: document.getElementById('start-date').value,
+      start_time: document.getElementById('start-time').value,
+      max_participants: document.getElementById('max-participants').value
+    };
+
     resBox.textContent = "Creating tournament...";
+
     try {
       const res = await fetch("https://d33.app.n8n.cloud/webhook/create-tournament", {
-        method: "POST", headers: { "Content-Type": "application/json" },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data)
       });
-      await res.text();
-      resBox.textContent = "Tournament created successfully!";
+
+      const result = await res.json();
+
+      if (!res.ok || result.error) {
+        console.error("Server error:", result);
+        resBox.textContent = "Error creating tournament: " + (result.error || res.statusText);
+        return;
+      }
+
+      resBox.textContent = "✅ Tournament created successfully!";
       loadTournaments();
+
     } catch (err) {
-      resBox.textContent = "Error creating tournament.";
-      console.error(err);
+      console.error("Network or parsing error:", err);
+      resBox.textContent = "❌ Error creating tournament. Check console for details.";
     }
   });
+</script>
+
 
   // Register Participant
   document.getElementById('registerForm').addEventListener('submit', async (e) => {
@@ -354,3 +374,4 @@
   </script>
 </body>
 </html>
+
