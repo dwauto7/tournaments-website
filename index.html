@@ -6,6 +6,37 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 		<link rel="stylesheet" href="assets/css/main.css" />
 		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+		<style>
+			/* Custom styles for form inputs */
+			input[type="date"], input[type="time"], input[type="number"] {
+				color: #000000 !important;
+				background: #ffffff !important;
+			}
+			
+			.registration-info ul {
+				list-style: none;
+				padding-left: 0;
+			}
+			
+			.registration-info li {
+				position: relative;
+				padding-left: 2em;
+				margin-bottom: 0.5em;
+			}
+			
+			.registration-info li:before {
+				content: "✓";
+				position: absolute;
+				left: 0;
+				color: #4CAF50;
+				font-weight: bold;
+			}
+			
+			.golf-icon {
+				font-size: 4em;
+				color: #4CAF50;
+			}
+		</style>
 	</head>
 	<body class="is-preload">
 
@@ -38,7 +69,9 @@
 			<!-- Banner -->
 			<section id="banner">
 				<div class="inner">
-					<div class="logo"><span class="icon fa-gem"></span></div>
+					<div class="logo">
+						<span class="icon golf-icon">⛳</span>
+					</div>
 					<h2>TournaMate</h2>
 					<p>Your AI-Powered Golf Tournament Assistant</p>
 					<div class="actions special">
@@ -78,7 +111,10 @@
 							</div>
 							<a href="#registration" class="special">Get Started</a>
 						</div>
-						<a href="#" class="image"><img src="images/pic01.jpg" alt="Golf Tournament Flow" /></a>
+						<a href="#" class="image">
+							<!-- Replace with your golf image -->
+							<img src="images/golf-swing.jpg" alt="Golfer Swinging Club" />
+						</a>
 					</div>
 				</section>
 
@@ -102,15 +138,16 @@
 								</div>
 								<div class="col-6 col-12-xsmall">
 									<label for="start-date">Start Date</label>
-									<input type="date" id="start-date" required />
+									<input type="date" id="start-date" required style="color: #000000; background: #ffffff;" />
 								</div>
 								<div class="col-6 col-12-xsmall">
 									<label for="start-time">Start Time</label>
-									<input type="time" id="start-time" required />
+									<input type="time" id="start-time" required style="color: #000000; background: #ffffff;" />
 								</div>
 								<div class="col-12">
 									<label for="max-participants">Max Participants</label>
-									<input type="number" id="max-participants" placeholder="50" min="2" max="500" required />
+									<input type="number" id="max-participants" placeholder="50" min="2" max="500" required 
+										   style="color: #000000; background: #ffffff;" />
 								</div>
 								<div class="col-12">
 									<button type="submit" class="button primary">Create Tournament</button>
@@ -152,8 +189,9 @@
 								</div>
 								<div class="col-6 col-12-xsmall">
 									<label for="handicap-number">Golf Handicap</label>
-									<input type="number" id="handicap-number" placeholder="Enter 0-54" min="0" max="54" step="0.1" required />
-									<small>Enter your official golf handicap index</small>
+									<input type="number" id="handicap-number" placeholder="Type in 0-54" min="0" max="54" step="0.1" required 
+										   style="color: #000000; background: #ffffff;" />
+									<small>Type in your official golf handicap index</small>
 								</div>
 								<div class="col-6 col-12-xsmall">
 									<label for="skill-level">Skill Category</label>
@@ -176,10 +214,9 @@
 						<div class="registration-info">
 							<h3>What happens after registration?</h3>
 							<ul>
-								<li>✓ Your data is securely stored in our system</li>
-								<li>✓ You'll receive SMS confirmation via n8n workflow</li>
-								<li>✓ 12 hours before tournament: Groups will automatically be set</li>
-								<li>✓ Check your group members and prepare to compete!</li>
+								<li>You'll receive an SMS confirmation upon successful registration</li>
+								<li>Groups will be set automatically 12 hours before tournament</li>
+								<li>Check view groups to view groups</li>
 							</ul>
 						</div>
 					</div>
