@@ -278,12 +278,12 @@ async function loadTournaments() {
 // Load tournaments on page load
 loadTournaments();
 
-// Create Tournament - WITH CORRECT FIELD NAMES
+// Create Tournament - FIXED VERSION
 document.getElementById('tournamentForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const resBox = document.getElementById('tournamentResponse');
 
-  // Get all values - USE CORRECT VARIABLE NAMES
+  // Get all values - WITH CORRECT VARIABLE NAMES
   const name = document.getElementById('tournament-name').value.trim();
   const type = document.getElementById('tournament-type').value;
   const start_date = document.getElementById('start-date').value;
@@ -299,13 +299,13 @@ document.getElementById('tournamentForm').addEventListener('submit', async (e) =
     return;
   }
 
-  // USE THE CORRECT FIELD NAMES THAT N8N EXPECTS
+  // FIXED: Use the correct variable name
   const data = {
     name: name,
     type: type,
     start_date: start_date,
     start_time: start_time,
-    max_participants: parseInt(maxParticipants)
+    max_participants: parseInt(max_participants) // ← FIXED: now using max_participants
   };
 
   console.log("Sending to n8n:", data);
@@ -408,6 +408,7 @@ document.getElementById('groupsForm').addEventListener('submit', async (e) => {
 </script>
 </body>
 </html>
+
 
 
 
