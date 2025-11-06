@@ -186,7 +186,7 @@
             <ul>
               <li>You'll receive SMS confirmation upon successful registration.</li>
               <li>Groups are set automatically 12 hours before the tournament.</li>
-              <li>Use “View Groups” to see your assigned group.</li>
+              <li>Use "View Groups" to see your assigned group.</li>
             </ul>
           </div>
         </div>
@@ -253,7 +253,6 @@
 
   <!-- Custom Scripts -->
   <script>
- <script>
   // Load tournaments for dropdowns
   async function loadTournaments() {
     try {
@@ -276,9 +275,10 @@
     }
   }
 
+  // Load tournaments on page load
   loadTournaments();
 
-  // ✅ Create Tournament - fixed version
+  // Create Tournament
   document.getElementById('tournamentForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const resBox = document.getElementById('tournamentResponse');
@@ -291,7 +291,9 @@
       max_participants: document.getElementById('max-participants').value
     };
 
+    console.log("Sending tournament data:", data);
     resBox.textContent = "Creating tournament...";
+    resBox.style.color = "blue";
 
     try {
       const res = await fetch("https://d33.app.n8n.cloud/webhook/create-tournament", {
@@ -300,24 +302,25 @@
         body: JSON.stringify(data)
       });
 
-      const result = await res.json();
-
-      if (!res.ok || result.error) {
-        console.error("Server error:", result);
-        resBox.textContent = "Error creating tournament: " + (result.error || res.statusText);
-        return;
+      console.log("Response status:", res.status);
+      
+      if (res.ok) {
+        const result = await res.text();
+        resBox.textContent = "✅ Tournament created successfully!";
+        resBox.style.color = "green";
+        document.getElementById('tournamentForm').reset();
+        loadTournaments(); // Refresh tournament list
+      } else {
+        const errorText = await res.text();
+        resBox.textContent = "❌ Error: " + (errorText || res.statusText);
+        resBox.style.color = "red";
       }
-
-      resBox.textContent = "✅ Tournament created successfully!";
-      loadTournaments();
-
     } catch (err) {
-      console.error("Network or parsing error:", err);
-      resBox.textContent = "❌ Error creating tournament. Check console for details.";
+      console.error("Network error:", err);
+      resBox.textContent = "❌ Network error - cannot reach server";
+      resBox.style.color = "red";
     }
   });
-</script>
-
 
   // Register Participant
   document.getElementById('registerForm').addEventListener('submit', async (e) => {
@@ -330,16 +333,29 @@
       handicap: document.getElementById('handicap-number').value,
       skill_level: document.getElementById('skill-level').value
     };
+    
     const box = document.getElementById('responseMessage');
     box.textContent = "Submitting registration...";
+    box.style.color = "blue";
+    
     try {
-      await fetch("https://d33.app.n8n.cloud/webhook/register", {
-        method: "POST", headers: { "Content-Type": "application/json" },
+      const res = await fetch("https://d33.app.n8n.cloud/webhook/register", {
+        method: "POST", 
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data)
       });
-      box.textContent = "Registration successful! You'll receive SMS confirmation shortly.";
+      
+      if (res.ok) {
+        box.textContent = "✅ Registration successful! You'll receive SMS confirmation shortly.";
+        box.style.color = "green";
+        document.getElementById('registerForm').reset();
+      } else {
+        box.textContent = "❌ Registration failed. Please try again.";
+        box.style.color = "red";
+      }
     } catch (err) {
-      box.textContent = "Error submitting registration.";
+      box.textContent = "❌ Network error submitting registration.";
+      box.style.color = "red";
       console.error(err);
     }
   });
@@ -351,13 +367,16 @@
     const tableBody = document.getElementById('groupsTableBody');
     document.getElementById('groupsResults').style.display = 'block';
     tableBody.innerHTML = '<tr><td colspan="4">Loading groups...</td></tr>';
+    
     try {
       const res = await fetch(`https://d33.app.n8n.cloud/webhook/tournament-groups?tournamentId=${tournamentId}`);
       const data = await res.json();
+      
       if (!data.success || !data.groups || Object.keys(data.groups).length === 0) {
         tableBody.innerHTML = '<tr><td colspan="4">Groups not available yet. Please check again later.</td></tr>';
         return;
       }
+      
       let html = '';
       for (const [groupName, members] of Object.entries(data.groups)) {
         const players = members.map(m => m.name).join(', ');
@@ -373,5 +392,3 @@
   </script>
 </body>
 </html>
-
-
