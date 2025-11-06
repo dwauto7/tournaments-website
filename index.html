@@ -29,6 +29,7 @@
 						<li><a href="#flow">How It Works</a></li>
 						<li><a href="#tournaments">Tournaments</a></li>
 						<li><a href="#registration">Register</a></li>
+						<li><a href="#groups">View Groups</a></li>
 					</ul>
 					<a href="#" class="close">Close</a>
 				</div>
@@ -39,11 +40,12 @@
 				<div class="inner">
 					<div class="logo"><span class="icon fa-gem"></span></div>
 					<h2>TournaMate</h2>
-					<p>Your AI-Powered Tournament Assistant</p>
+					<p>Your AI-Powered Golf Tournament Assistant</p>
 					<div class="actions special">
 						<a href="#flow" class="button primary">How It Works</a>
 						<a href="#tournaments" class="button">Create Tournament</a>
 						<a href="#registration" class="button">Register Now</a>
+						<a href="#groups" class="button">View Groups</a>
 					</div>
 				</div>
 			</section>
@@ -51,54 +53,52 @@
 			<!-- Wrapper -->
 			<section id="wrapper">
 
-				<!-- Section 1: Flow Explanation -->
-				<section id="flow" class="wrapper spotlight style1">
+				<!-- Section 1: Flow Explanation (Left aligned) -->
+				<section id="flow" class="wrapper alt spotlight style1">
 					<div class="inner">
 						<div class="content">
 							<h2 class="major">How TournaMate Works</h2>
 							<div class="flow-steps">
 								<div class="step">
 									<h3>1. Select Tournament</h3>
-									<p>Browse available tournaments and choose your competition</p>
+									<p>Browse available golf tournaments and choose your competition</p>
 								</div>
 								<div class="step">
-									<h3>2. Register & Provide Details</h3>
-									<p>Enter your information and skill level for proper grouping</p>
+									<h3>2. Register & Provide Handicap</h3>
+									<p>Enter your information and golf handicap for proper grouping</p>
 								</div>
 								<div class="step">
 									<h3>3. Smart Grouping</h3>
-									<p>12 hours before start, participants are grouped by skill level</p>
+									<p>12 hours before start, participants are grouped by handicap level</p>
 								</div>
 								<div class="step">
 									<h3>4. Tournament Time!</h3>
-									<p>View your group and compete with evenly matched opponents</p>
+									<p>View your group and compete with evenly matched golfers</p>
 								</div>
 							</div>
 							<a href="#registration" class="special">Get Started</a>
 						</div>
+						<a href="#" class="image"><img src="images/pic01.jpg" alt="Golf Tournament Flow" /></a>
 					</div>
 				</section>
 
 				<!-- Section 2: Tournaments -->
-				<section id="tournaments" class="wrapper alt style2">
+				<section id="tournaments" class="wrapper style2">
 					<div class="inner">
-						<h2 class="major">Create Tournament</h2>
-						<p>Set up your own tournament in minutes</p>
+						<h2 class="major">Create Golf Tournament</h2>
+						<p>Set up your own golf tournament in minutes</p>
 						
 						<form id="tournamentForm">
 							<div class="row gtr-uniform">
 								<div class="col-6 col-12-xsmall">
-									<label for="tournament-type">Tournament Type</label>
-									<select id="tournament-type" required>
-										<option value="">Select Type</option>
-										<option value="golf">Golf Tournament</option>
-										<option value="gaming">Gaming Tournament</option>
-										<option value="other">Other</option>
-									</select>
-								</div>
-								<div class="col-6 col-12-xsmall">
 									<label for="tournament-name">Tournament Name</label>
 									<input type="text" id="tournament-name" placeholder="Enter tournament name" required />
+								</div>
+								<div class="col-6 col-12-xsmall">
+									<label for="tournament-type">Tournament Type</label>
+									<select id="tournament-type" required>
+										<option value="golf">Golf Tournament</option>
+									</select>
 								</div>
 								<div class="col-6 col-12-xsmall">
 									<label for="start-date">Start Date</label>
@@ -122,7 +122,7 @@
 				</section>
 
 				<!-- Section 3: Registration -->
-				<section id="registration" class="wrapper style3 special">
+				<section id="registration" class="wrapper alt style3 special">
 					<div class="inner">
 						<header class="major">
 							<h2>Register for Tournament</h2>
@@ -130,22 +130,47 @@
 						</header>
 
 						<form id="registerForm">
-							<select id="tournament-select" required>
-								<option value="">Select Tournament</option>
-								<!-- Tournaments will be populated dynamically -->
-							</select>
-							<input type="text" id="name" placeholder="Full Name" required />
-							<input type="text" id="phone" placeholder="+60123456789" required />
-							<input type="email" id="email" placeholder="Email Address" required />
-							<select id="handicap" required>
-								<option value="">Select Skill Level</option>
-								<option value="Beginner">Beginner</option>
-								<option value="Intermediate">Intermediate</option>
-								<option value="Advanced">Advanced</option>
-								<option value="Expert">Expert</option>
-							</select>
-							<button type="submit" class="button primary">Register Now</button>
-							<p id="responseMessage"></p>
+							<div class="row gtr-uniform">
+								<div class="col-6 col-12-xsmall">
+									<label for="tournament-select">Select Tournament</label>
+									<select id="tournament-select" required>
+										<option value="">Select Tournament</option>
+										<!-- Tournaments will be populated dynamically -->
+									</select>
+								</div>
+								<div class="col-6 col-12-xsmall">
+									<label for="name">Full Name</label>
+									<input type="text" id="name" placeholder="Full Name" required />
+								</div>
+								<div class="col-6 col-12-xsmall">
+									<label for="phone">Phone Number</label>
+									<input type="text" id="phone" placeholder="+60123456789" required />
+								</div>
+								<div class="col-6 col-12-xsmall">
+									<label for="email">Email Address</label>
+									<input type="email" id="email" placeholder="Email Address" required />
+								</div>
+								<div class="col-6 col-12-xsmall">
+									<label for="handicap-number">Golf Handicap</label>
+									<input type="number" id="handicap-number" placeholder="Enter 0-54" min="0" max="54" step="0.1" required />
+									<small>Enter your official golf handicap index</small>
+								</div>
+								<div class="col-6 col-12-xsmall">
+									<label for="skill-level">Skill Category</label>
+									<select id="skill-level" required>
+										<option value="">Select based on handicap</option>
+										<option value="Scratch">Scratch Golfer (0 or better)</option>
+										<option value="Low">Low Handicap (1-9)</option>
+										<option value="Mid">Mid Handicap (10-19)</option>
+										<option value="High">High Handicap (20-29)</option>
+										<option value="Beginner">Beginner (30-54)</option>
+									</select>
+								</div>
+								<div class="col-12">
+									<button type="submit" class="button primary">Register Now</button>
+									<p id="responseMessage"></p>
+								</div>
+							</div>
 						</form>
 
 						<div class="registration-info">
@@ -153,9 +178,51 @@
 							<ul>
 								<li>✓ Your data is securely stored in our system</li>
 								<li>✓ You'll receive SMS confirmation via n8n workflow</li>
-								<li>✓ 12 hours before tournament: Group assignments sent</li>
-								<li>✓ View your group members and prepare to compete!</li>
+								<li>✓ 12 hours before tournament: Groups will automatically be set</li>
+								<li>✓ Check your group members and prepare to compete!</li>
 							</ul>
+						</div>
+					</div>
+				</section>
+
+				<!-- Section 4: View Groups -->
+				<section id="groups" class="wrapper style1">
+					<div class="inner">
+						<h2 class="major">View Tournament Groups</h2>
+						<p>Check your group assignments and fellow competitors</p>
+						
+						<form id="groupsForm">
+							<div class="row gtr-uniform">
+								<div class="col-8 col-12-xsmall">
+									<label for="group-tournament-select">Select Tournament</label>
+									<select id="group-tournament-select" required>
+										<option value="">Select Tournament</option>
+										<!-- Tournaments will be populated dynamically -->
+									</select>
+								</div>
+								<div class="col-4 col-12-xsmall">
+									<button type="submit" class="button primary fit" style="margin-top: 1.8em;">View Groups</button>
+								</div>
+							</div>
+						</form>
+
+						<div id="groupsResults" style="display: none; margin-top: 2em;">
+							<h3>Group Assignments</h3>
+							<div class="table-wrapper">
+								<table>
+									<thead>
+										<tr>
+											<th>Group</th>
+											<th>Players</th>
+											<th>Average Handicap</th>
+											<th>Tee Time</th>
+										</tr>
+									</thead>
+									<tbody id="groupsTableBody">
+										<!-- Groups will be populated here -->
+									</tbody>
+								</table>
+							</div>
 						</div>
 					</div>
 				</section>
@@ -197,7 +264,8 @@
 				name: document.getElementById('name').value,
 				phone: document.getElementById('phone').value,
 				email: document.getElementById('email').value,
-				handicap: document.getElementById('handicap').value,
+				handicap: document.getElementById('handicap-number').value,
+				skill_level: document.getElementById('skill-level').value,
 			};
 
 			const responseBox = document.getElementById('responseMessage');
@@ -241,6 +309,40 @@
 				responseBox.textContent = "Tournament created successfully!";
 			} catch (err) {
 				responseBox.textContent = "Error creating tournament. Please try again.";
+				console.error(err);
+			}
+		});
+
+		// View Groups Form
+		document.getElementById('groupsForm').addEventListener('submit', async (e) => {
+			e.preventDefault();
+			const tournamentId = document.getElementById('group-tournament-select').value;
+			
+			// Show loading state
+			document.getElementById('groupsResults').style.display = 'block';
+			document.getElementById('groupsTableBody').innerHTML = '<tr><td colspan="4">Loading groups...</td></tr>';
+
+			try {
+				// This would call your n8n webhook to get group data
+				const res = await fetch(`https://d33.app.n8n.cloud/webhook/get-groups?tournament=${tournamentId}`);
+				const groups = await res.json();
+				
+				// Populate groups table (you'll need to adjust based on your actual API response)
+				let tableHTML = '';
+				groups.forEach(group => {
+					tableHTML += `
+						<tr>
+							<td>${group.name}</td>
+							<td>${group.players.join(', ')}</td>
+							<td>${group.averageHandicap}</td>
+							<td>${group.teeTime}</td>
+						</tr>
+					`;
+				});
+				document.getElementById('groupsTableBody').innerHTML = tableHTML;
+				
+			} catch (err) {
+				document.getElementById('groupsTableBody').innerHTML = '<tr><td colspan="4">Error loading groups. Please try again.</td></tr>';
 				console.error(err);
 			}
 		});
