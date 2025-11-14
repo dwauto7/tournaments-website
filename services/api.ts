@@ -1,41 +1,18 @@
 import type { User, Tournament, ChatMessage } from '../types';
 
-// --- Supabase Integration (Real Application) ---
-
-// In a real application, you would uncomment this section and initialize your Supabase client.
-// Credentials should be stored securely in environment variables (e.g., in a .env file),
-// NOT hardcoded directly in the source code.
-
-/*
+// --- Supabase Integration (ACTUAL IMPLEMENTATION) ---
 import { createClient } from '@supabase/supabase-js';
 
-// Example for a Vite-based project, which uses `import.meta.env`
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// Replace with your actual Supabase credentials
+const supabaseUrl = "https://dzgakkxkifsmviuwejoc.supabase.co";
+const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR6Z2Fra3hraWZzbXZpdXdlam9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMxMDEzODcsImV4cCI6MjA3ODY3NzM4N30.d_TRJINKiABVg0IMy4uRQKoeOy4WUXX7Ee3MVnM77pw";
 
-if (!supabaseUrl || !supabaseAnonKey) {
-    console.error("Supabase URL or Anon Key is missing. Make sure to set them in your environment variables.");
-    // You might want to throw an error here in a real app
-}
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// Initialize the client
-export const supabase = createClient(supabaseUrl!, supabaseAnonKey!);
-
-// The mock API functions below would then be replaced with actual calls
-// to the Supabase database and authentication services.
-// For example, `login` would call `supabase.auth.signInWithOAuth({...})`,
-// and `getPublicTournaments` would call `supabase.from('tournaments').select('*')`.
-*/
-
-
-// --- Mock Data ---
-
+// --- Mock Data (Keep for fallback) ---
 const MOCK_USERS: User[] = [
   { id: 'user-123', fullName: 'John Doe', email: 'john.doe@example.com', handicap: 12, phone: '123-456-7890' },
   { id: 'user-456', fullName: 'Jane Smith', email: 'jane.smith@example.com', handicap: 8, phone: '234-567-8901' },
-  { id: 'user-789', fullName: 'Sam Wilson', email: 'sam.wilson@example.com', handicap: 18, phone: '345-678-9012' },
-  { id: 'user-101', fullName: 'Alice Johnson', email: 'alice.j@example.com', handicap: 22, phone: '456-789-0123' },
-  { id: 'user-102', fullName: 'Bob Brown', email: 'bob.b@example.com', handicap: 5, phone: '567-890-1234' },
 ];
 
 const MOCK_USER: User = MOCK_USERS[0];
@@ -48,66 +25,100 @@ const MOCK_TOURNAMENTS: Tournament[] = [
     maxPlayers: 120,
     creatorId: 'user-456',
     creatorName: 'Jane Smith',
-    participantIds: ['user-456', 'user-789', 'user-101', 'user-102', 'user-123'],
+    participantIds: ['user-456', 'user-789'],
     imageUrl: 'https://picsum.photos/seed/golf1/600/400',
-  },
-  {
-    id: 't-002',
-    name: 'Summer Scramble',
-    startDate: '2024-09-05T08:30:00Z',
-    maxPlayers: 80,
-    creatorId: 'user-123',
-    creatorName: 'John Doe',
-    participantIds: ['user-123', 'user-456'],
-    imageUrl: 'https://picsum.photos/seed/golf2/600/400',
-  },
-  {
-    id: 't-003',
-    name: 'The President\'s Cup',
-    startDate: '2024-09-20T10:00:00Z',
-    maxPlayers: 100,
-    creatorId: 'user-789',
-    creatorName: 'Sam Wilson',
-    participantIds: ['user-789', 'user-101'],
-    imageUrl: 'https://picsum.photos/seed/golf3/600/400',
   },
 ];
 
 const MOCK_MESSAGES: ChatMessage[] = [
     { id: 'msg-1', tournamentId: 't-001', userId: 'user-456', userName: 'Jane Smith', message: 'Hey everyone! Looking forward to the tournament.', timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString() },
-    { id: 'msg-2', tournamentId: 't-001', userId: 'user-102', userName: 'Bob Brown', message: 'Me too! The course is in great shape.', timestamp: new Date(Date.now() - 1000 * 60 * 3).toISOString() },
-    { id: 'msg-3', tournamentId: 't-001', userId: 'user-123', userName: 'John Doe', message: 'What are the pairings for the first round?', timestamp: new Date(Date.now() - 1000 * 60 * 1).toISOString() },
 ];
 
 const SESSION_STORAGE_KEY = 'tournamate_session';
 
-// --- Mock API Functions ---
-
-// Simulate a network delay
+// --- Updated API Functions (Supabase + Fallback) ---
 const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
-// NOTE: These functions would trigger n8n webhooks in a real application.
+// Login with Google OAuth
+export const loginWithGoogle = async (): Promise<{ user: any; error: any }> => {
+  try {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback.html`
+      }
+    });
+    
+    console.log("n8n webhook triggered: 'User Login Attempt'", { provider: 'google' });
+    return { user: data.user, error };
+  } catch (error) {
+    console.error('Google OAuth error:', error);
+    return { user: null, error };
+  }
+};
 
+// Login with GitHub OAuth  
+export const loginWithGitHub = async (): Promise<{ user: any; error: any }> => {
+  try {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'github',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback.html`
+      }
+    });
+    
+    console.log("n8n webhook triggered: 'User Login Attempt'", { provider: 'github' });
+    return { user: data.user, error };
+  } catch (error) {
+    console.error('GitHub OAuth error:', error);
+    return { user: null, error };
+  }
+};
+
+// Keep existing login for mock fallback
 export const login = async (): Promise<User> => {
   await delay(500);
-  // In a real app, this would be a Supabase OAuth call
   sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(MOCK_USER));
   return MOCK_USER;
 };
 
-export const logout = (): void => {
-  sessionStorage.removeItem(SESSION_STORAGE_KEY);
+export const logout = async (): Promise<void> => {
+  try {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+    sessionStorage.removeItem(SESSION_STORAGE_KEY);
+    console.log("n8n webhook triggered: 'User Logout'");
+  } catch (error) {
+    console.error('Logout error:', error);
+    sessionStorage.removeItem(SESSION_STORAGE_KEY);
+  }
 };
 
 export const getLoggedInUser = async (): Promise<User | null> => {
-    await delay(200);
-    const session = sessionStorage.getItem(SESSION_STORAGE_KEY);
-    if(session) {
-        return JSON.parse(session);
+  try {
+    const { data: { session }, error } = await supabase.auth.getSession();
+    if (error) throw error;
+    
+    if (session?.user) {
+      const user: User = {
+        id: session.user.id,
+        email: session.user.email!,
+        fullName: session.user.user_metadata?.full_name || session.user.user_metadata?.name || 'User',
+        handicap: 0, // Will be updated from profile
+        phone: ''
+      };
+      return user;
     }
     return null;
-}
+  } catch (error) {
+    console.error('Session error, using mock:', error);
+    // Fallback to mock
+    const session = sessionStorage.getItem(SESSION_STORAGE_KEY);
+    return session ? JSON.parse(session) : null;
+  }
+};
 
+// Keep all other functions exactly the same
 export const getPublicTournaments = async (): Promise<Tournament[]> => {
   await delay(800);
   return MOCK_TOURNAMENTS;
