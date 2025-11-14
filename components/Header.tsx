@@ -30,7 +30,7 @@ const Header: React.FC = () => {
       <nav className="container mx-auto px-4 py-4 flex justify-between items-center">
         <NavLink to="/" className="flex items-center gap-3">
           <GolfBallIcon className="w-8 h-8 text-brand-accent" />
-          <span className="font-heading uppercase text-2xl tracking-widest text-brand-light">Tournamate</span>
+          <span className="font-heading uppercase text-2xl tracking-widest text-brand-light">MatchMate</span>
         </NavLink>
         <div className="hidden md:flex items-center gap-8">
           <NavLink to="/" className={navLinkClasses}>
