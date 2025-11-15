@@ -66,7 +66,7 @@ const LandingPage: React.FC = () => {
     <div className="space-y-24">
       {/* Hero Section */}
       <div className="text-center py-20 md:py-32">
-          <h1 className="text-5xl md:text-7xl font-bold font-heading uppercase tracking-wider text-brand-light mb-4">MatchD</h1>
+          <h1 className="text-5xl md:text-7xl font-bold font-heading uppercase tracking-wider text-brand-light mb-4">Bracketly</h1>
           <p className="text-lg md:text-xl max-w-2xl mx-auto text-brand-light/80 mb-8">The Smart Way to Manage Golf Tournaments. Create, manage, and join events with ease.</p>
           <Button onClick={() => navigate('/create')} className="text-lg px-8 py-3">
             Create a Tournament
