@@ -27,11 +27,6 @@ export interface JoinTournamentData {
   registration_code: string;
 }
 
-export interface ViewTournamentData {
-  tournament_id: string;
-  supabase_id: string;
-}
-
 export interface ContactData {
   name: string;
   email: string;
@@ -97,7 +92,7 @@ export async function createTournamentAPI(data: CreateTournamentData) {
  */
 export async function joinTournamentAPI(data: JoinTournamentData) {
   try {
-    const response = await fetch(`${N8N_BASE_URL}/Join-Tournament`, {
+    const response = await fetch(`${N8N_BASE_URL}/join-tournament`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -143,7 +138,7 @@ export async function submitContactAPI(data: ContactData) {
  */
 export async function fetchJoinedTournamentsAPI(data: FetchJoinedTournamentsData) {
   try {
-    const response = await fetch(`${N8N_BASE_URL}/view-tournaments`, {
+    const response = await fetch(`${N8N_BASE_URL}/view-tournament`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
