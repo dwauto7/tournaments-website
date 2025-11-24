@@ -1,0 +1,19 @@
+project_id = "dhfppcjuqfyhhvxrdsio"
+
+[functions.create-tournament]
+verify_jwt = true
+
+[functions.join-tournament]
+verify_jwt = true
+
+[functions.my-tournaments]
+verify_jwt = true
+
+[functions.joined-tournaments]
+verify_jwt = true
+
+[functions.tournament-details]
+verify_jwt = true
+
+[functions.contact]
+verify_jwt = false
