@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 
-const N8N_BASE_URL = "https://n8n.aiblizzard.work/webhook-test";
+const N8N_BASE_URL = "https://n8n.aiblizzard.work/webhook";
 
 export interface CreateUserData {
   supabase_id: string;
@@ -118,31 +118,6 @@ export async function joinTournamentAPI(data: JoinTournamentData) {
 }
 
 /**
- * View tournament details via n8n webhook
- */
-export async function viewTournamentAPI(data: ViewTournamentData) {
-  try {
-    const response = await fetch(`${N8N_BASE_URL}/view-tournament`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
-
-    const result = await response.json();
-
-    if (!result.tournament) {
-      return { data: null, error: { message: "Tournament not found" } };
-    }
-
-    return { data: result, error: null };
-  } catch (error) {
-    return { data: null, error };
-  }
-}
-
-/**
  * Submit a contact message via direct Supabase insert
  */
 export async function submitContactAPI(data: ContactData) {
@@ -168,7 +143,7 @@ export async function submitContactAPI(data: ContactData) {
  */
 export async function fetchJoinedTournamentsAPI(data: FetchJoinedTournamentsData) {
   try {
-    const response = await fetch(`${N8N_BASE_URL}/joined-tournaments`, {
+    const response = await fetch(`${N8N_BASE_URL}/view-tournaments`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
