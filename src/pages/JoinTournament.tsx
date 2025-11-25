@@ -14,7 +14,6 @@ import { toast } from "sonner";
 import { Calendar, Users, Trophy, Loader2, Search, MapPin } from "lucide-react";
 import { format } from "date-fns";
 import { joinTournamentAPI } from "@/lib/api";
-import { useTournamentRefresh } from "@/contexts/TournamentRefreshContext";
 
 interface Tournament {
   id: string;
@@ -91,7 +90,7 @@ const JoinTournament = () => {
     setLoading(false);
   };
 
-  const handleJoin = async (tournament) => {
+  const handleJoin = async (tournament: Tournament) => {
   if (!user) {
     toast.error("User not loaded");
     return;
