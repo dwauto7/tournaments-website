@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useAuth } from "@/hooks/useAuth";
-import { viewTournamentAPI } from "@/lib/api";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Calendar, Users, Trophy, Loader2, MapPin, ArrowLeft, Clock } from "lucide-react";
 import { format } from "date-fns";
@@ -53,18 +53,64 @@ const TournamentDetails = () => {
     if (!id || !user) return;
 
     setLoading(true);
-    const { data, error } = await viewTournamentAPI(id);
 
-    if (error || !data) {
-      console.error("Error fetching tournament:", error);
-      toast.error("Tournament not found");
-      navigate("/dashboard");
-      return;
+    try {
+      console.log("🔍 Fetching tournament:", id);
+
+      // Fetch tournament details
+      const { data: tournamentData, error: tournamentError } = await supabase
+        .from("tournaments")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+      if (tournamentError) {
+        console.error("❌ Tournament error:", tournamentError);
+        toast.error("Tournament not found");
+        navigate("/dashboard");
+        return;
+      }
+
+      console.log("✅ Tournament found:", tournamentData);
+      setTournament(tournamentData);
+
+      // Fetch participants with user details
+      const { data: participantRecords, error: participantsError } = await supabase
+        .from("tournament_participants")
+        .select(`
+          id,
+          user_id,
+          joined_at,
+          group_assignment,
+          users (
+            id,
+            name,
+            email,
+            phone,
+            handicap
+          )
+        `)
+        .eq("tournament_id", id);
+
+      if (participantsError) {
+        console.error("❌ Participants error:", participantsError);
+        setParticipants([]);
+      } else {
+        console.log("✅ Participants found:", participantRecords?.length || 0);
+        
+        // Extract user data from participant records
+        const participantList = participantRecords
+          ?.filter(p => p.users) // Filter out any null users
+          .map(p => p.users as Participant) || [];
+        
+        setParticipants(participantList);
+      }
+    } catch (error) {
+      console.error("❌ Exception:", error);
+      toast.error("Failed to load tournament details");
+    } finally {
+      setLoading(false);
     }
-
-    setTournament(data.tournament);
-    setParticipants(data.participants || []);
-    setLoading(false);
   };
 
   const copyCode = () => {
@@ -247,28 +293,32 @@ const TournamentDetails = () => {
                 <p className="text-muted-foreground">No participants yet</p>
               </div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>#</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Phone</TableHead>
-                    <TableHead>Handicap</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {participants.map((participant, index) => (
-                    <TableRow key={participant.id}>
-                      <TableCell className="font-medium">{index + 1}</TableCell>
-                      <TableCell>{participant.name}</TableCell>
-                      <TableCell>{participant.email}</TableCell>
-                      <TableCell>{participant.phone || "-"}</TableCell>
-                      <TableCell>{participant.handicap ?? "-"}</TableCell>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-12">#</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Phone</TableHead>
+                      <TableHead className="text-right">Handicap</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {participants.map((participant, index) => (
+                      <TableRow key={participant.id}>
+                        <TableCell className="font-medium">{index + 1}</TableCell>
+                        <TableCell className="font-medium">{participant.name}</TableCell>
+                        <TableCell>{participant.email}</TableCell>
+                        <TableCell>{participant.phone || "-"}</TableCell>
+                        <TableCell className="text-right">
+                          {participant.handicap !== null ? participant.handicap : "-"}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             )}
           </CardContent>
         </Card>
@@ -278,3 +328,26 @@ const TournamentDetails = () => {
 };
 
 export default TournamentDetails;
+```
+
+---
+
+## 🔍 **Key Changes Made**
+
+1. **✅ Direct Supabase Query** - Instead of using `viewTournamentAPI()`, we query Supabase directly for more reliable results
+2. **✅ Proper Participant Extraction** - Fixed the mapping from `participantRecords` to actual user data
+3. **✅ Real-time Count** - Uses `participants.length` from the actual fetched data
+4. **✅ Better Error Handling** - Shows specific console logs to debug issues
+
+---
+
+## 🧪 **Test This**
+
+1. **Deploy the changes** to Vercel (push to GitHub)
+2. **Open browser console** (F12 → Console)
+3. **Navigate to a tournament** from the dashboard
+4. **Look for these logs:**
+```
+   🔍 Fetching tournament: [tournament-id]
+   ✅ Tournament found: [tournament data]
+   ✅ Participants found: 2
