@@ -41,6 +41,8 @@ export interface ContactData {
  */
 export async function createUserAPI(data: CreateUserData) {
   try {
+    console.log("🚀 Creating user profile:", data);
+
     const { data: user, error } = await supabase
       .from("users")
       .insert({
@@ -54,13 +56,18 @@ export async function createUserAPI(data: CreateUserData) {
       .single();
 
     if (error) {
-      console.error("Error creating user:", error);
+      console.error("❌ Error creating user:", error);
+      console.error("Error code:", error.code);
+      console.error("Error details:", error.details);
+      console.error("Error hint:", error.hint);
+      console.error("Error message:", error.message);
       return { data: null, error };
     }
 
+    console.log("✅ User profile created:", user);
     return { data: { success: true, user }, error: null };
   } catch (error) {
-    console.error("Exception creating user:", error);
+    console.error("❌ Exception creating user:", error);
     return { data: null, error };
   }
 }
