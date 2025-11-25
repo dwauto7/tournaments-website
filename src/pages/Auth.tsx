@@ -49,86 +49,92 @@ const Auth = () => {
     }
   };
 
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
+ const handleSignup = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-    // Validation
-    if (!name.trim()) {
-      toast.error("Name is required");
-      return;
-    }
+  // Validation
+  if (!name.trim()) {
+    toast.error("Name is required");
+    return;
+  }
 
-    if (!phone.trim()) {
-      toast.error("Phone number is required");
-      return;
-    }
+  if (!phone.trim()) {
+    toast.error("Phone number is required");
+    return;
+  }
 
-    // Validate phone format (E.164)
-    if (!phone.match(/^\+\d{10,15}$/)) {
-      toast.error("Phone must be in E.164 format (e.g., +60123456789)");
-      return;
-    }
+  // Validate phone format (E.164)
+  if (!phone.match(/^\+\d{10,15}$/)) {
+    toast.error("Phone must be in E.164 format (e.g., +60123456789)");
+    return;
+  }
 
-    setLoading(true);
+  setLoading(true);
 
-    try {
-      console.log("🚀 Starting signup process...");
+  try {
+    console.log("🚀 Starting signup process...");
 
-      // Step 1: Create auth user
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: email.trim(),
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-          data: {
-            name: name.trim(),
-            phone: phone.trim(),
-          }
+    // Step 1: Create auth user
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email: email.trim(),
+      password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        data: {
+          name: name.trim(),
+          phone: phone.trim(),
         }
-      });
-
-      if (authError) throw authError;
-
-      if (!authData.user) {
-        throw new Error("Failed to create user account");
       }
+    });
 
-      console.log("✅ Auth user created:", authData.user.id);
+    if (authError) throw authError;
 
-      // Step 2: Create profile in public.users table
-      const { data: profileData, error: profileError } = await createUserAPI({
-        supabase_id: authData.user.id,
-        name: name.trim(),
-        email: email.trim(),
-        phone: phone.trim(),
-        handicap: handicap ? parseInt(handicap) : undefined,
-      });
-
-      if (profileError) {
-        console.error("❌ Failed to create user profile:", profileError);
-        toast.error("Account created but profile setup failed. Please contact support.");
-        return;
-      }
-
-      console.log("✅ User profile created:", profileData);
-
-      toast.success("Account created! Please check your email to confirm.");
-
-      // Clear form
-      setName("");
-      setPhone("");
-      setHandicap("");
-      setEmail("");
-      setPassword("");
-
-    } catch (error: any) {
-      console.error("❌ Signup error:", error);
-      toast.error(error.message || "Failed to create account");
-    } finally {
-      setLoading(false);
+    if (!authData.user) {
+      throw new Error("Failed to create user account");
     }
-  };
 
+    console.log("✅ Auth user created:", authData.user.id);
+
+    // Step 2: Create profile in public.users table
+    const { data: profileData, error: profileError } = await createUserAPI({
+      supabase_id: authData.user.id,
+      name: name.trim(),
+      email: email.trim(),
+      phone: phone.trim(),
+      handicap: handicap ? parseInt(handicap) : undefined,
+    });
+
+    if (profileError) {
+      console.error("❌ Failed to create user profile:", profileError);
+      
+      // Show detailed error
+      const errorMsg = profileError.message || "Unknown error";
+      toast.error(`Profile setup failed: ${errorMsg}`);
+      
+      // Don't return - still show success for auth
+      toast.info("You can still log in, but please contact support to complete your profile.");
+      return;
+    }
+
+    console.log("✅ User profile created:", profileData);
+
+    toast.success("Account created! Please check your email to confirm.");
+
+    // Clear form
+    setName("");
+    setPhone("");
+    setHandicap("");
+    setEmail("");
+    setPassword("");
+
+  } catch (error: any) {
+    console.error("❌ Signup error:", error);
+    toast.error(error.message || "Failed to create account");
+  } finally {
+    setLoading(false);
+  }
+};
+  
   if (authLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
