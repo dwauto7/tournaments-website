@@ -70,7 +70,7 @@ const CreateTournament = () => {
 
     const { data, error } = await createTournamentAPI({
       created_by: user.id,
-      name: formData.title,
+      title: formData.title,
       description: formData.description || undefined,
       start_datetime: startDateTime.toISOString(),
       location: formData.location,
@@ -96,14 +96,10 @@ const CreateTournament = () => {
           copyCode();
         }
       }, 500);
-      
+
+      triggerRefresh();
       navigate("/dashboard");
-      
-      // Delay refresh to ensure webhook has completed writing to Supabase
-      setTimeout(() => {
-        triggerRefresh();
-      }, 1000);
-    }
+  }
     setLoading(false);
   };
 
