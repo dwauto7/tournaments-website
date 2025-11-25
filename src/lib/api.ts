@@ -15,6 +15,7 @@ export interface CreateTournamentData {
   title: string;
   description?: string;
   start_datetime: string;
+  end_datetime?: string; 
   location: string;
   prize_pool?: string;
   game: string;
@@ -88,12 +89,42 @@ export async function getUserProfile(userId: string) {
 // ==================== TOURNAMENT OPERATIONS ====================
 
 /**
+/**
  * Create a new tournament (Direct Supabase)
  */
 export async function createTournamentAPI(data: CreateTournamentData) {
   try {
-    // Generate unique registration code
-    const registrationCode = `${data.game.substring(0, 4).toUpperCase()}-${Math.floor(Math.random() * 9000) + 1000}`;
+    let registrationCode = "";
+    let isUnique = false;
+    let attempts = 0;
+    const maxAttempts = 10;
+
+    // Generate a unique registration code
+    while (!isUnique && attempts < maxAttempts) {
+      // Use first 4 chars of game + random 4 digits + random 2 letters
+      const gamePrefix = data.game.substring(0, 4).toUpperCase().replace(/[^A-Z]/g, '');
+      const randomNum = Math.floor(1000 + Math.random() * 9000); // 1000-9999
+      const randomLetters = Math.random().toString(36).substring(2, 4).toUpperCase();
+      
+      registrationCode = `${gamePrefix || 'TOUR'}-${randomNum}${randomLetters}`;
+
+      // Check if code already exists
+      const { data: existing } = await supabase
+        .from("tournaments")
+        .select("id")
+        .eq("registration_code", registrationCode)
+        .single();
+
+      if (!existing) {
+        isUnique = true;
+      }
+      attempts++;
+    }
+
+    if (!isUnique) {
+      // Fallback: use timestamp-based code
+      registrationCode = `TOUR-${Date.now().toString().slice(-8)}`;
+    }
 
     const { data: tournament, error } = await supabase
       .from("tournaments")
@@ -104,6 +135,7 @@ export async function createTournamentAPI(data: CreateTournamentData) {
         location: data.location,
         max_participants: data.max_participants,
         start_datetime: data.start_datetime,
+        end_datetime: data.end_datetime, // ✅ ADD THIS
         status: "upcoming",
         prize_pool: data.prize_pool,
         rules: data.rules,
@@ -118,7 +150,7 @@ export async function createTournamentAPI(data: CreateTournamentData) {
       return { data: null, error };
     }
 
-    return { data: { success: true, tournament }, error: null };
+    return { data: { success: true, registration_code: registrationCode, tournament }, error: null };
   } catch (error) {
     console.error("Exception creating tournament:", error);
     return { data: null, error };
