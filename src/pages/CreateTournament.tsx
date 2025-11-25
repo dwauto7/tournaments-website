@@ -83,23 +83,31 @@ const CreateTournament = () => {
     if (error) {
       toast.error(error.message || "Failed to create tournament");
     } else if (data?.registration_code) {
-      toast.success(`Tournament created! Join code: ${data.registration_code}`);
-      
-      // Show registration code with copy button
-      const copyCode = () => {
-        navigator.clipboard.writeText(data.registration_code);
-        toast.success("Registration code copied!");
-      };
-      
+      const regCode = data.registration_code;
+
+      // Show success toast
+      toast.success(`Tournament created!`, {
+        description: `Registration Code: ${regCode}`,
+        duration: 10000,
+      });
+
+      // Copy to clipboard
+      navigator.clipboard.writeText(regCode);
+
+      // Show alert with code
       setTimeout(() => {
-        if (window.confirm(`Your registration code is: ${data.registration_code}\n\nClick OK to copy it to clipboard.`)) {
-          copyCode();
-        }
+        alert(
+          `✅ Tournament Created Successfully!\n\n` +
+          `Registration Code: ${regCode}\n\n` +
+          `(Already copied to clipboard)\n\n` +
+          `Share this code with participants!`
+        );
       }, 500);
 
       triggerRefresh();
       navigate("/dashboard");
-  }
+    }
+
     setLoading(false);
   };
 
@@ -110,7 +118,7 @@ const CreateTournament = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      
+
       <div className="container mx-auto px-4 pt-24 pb-12 max-w-2xl">
         <Card className="shadow-card">
           <CardHeader>
@@ -134,7 +142,7 @@ const CreateTournament = () => {
                 <Label htmlFor="game">Game *</Label>
                 <Input
                   id="game"
-                  placeholder="e.g., League of Legends, CS:GO, Valorant"
+                  placeholder="e.g., Golf, Chess, Valorant"
                   value={formData.game}
                   onChange={(e) => handleChange("game", e.target.value)}
                   required
@@ -192,7 +200,7 @@ const CreateTournament = () => {
                   placeholder="Select tournament start date and time"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Tournament start time with timezone
+                  Select when your tournament will start
                 </p>
               </div>
 
