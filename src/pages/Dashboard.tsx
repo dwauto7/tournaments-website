@@ -310,5 +310,5 @@ const Dashboard = () => {
                   </div>
                 </div>
                 <h3 className="text-xl font-semibold mb-2">No tournaments joined yet</h3>
-                <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
+                <p className="text-muted-foreground mb-6 max-w-sm mx-auto"</p>
                   Discover
