@@ -92,14 +92,15 @@ const JoinTournament = () => {
 
   const handleJoin = async (tournament: Tournament) => {
   if (!user) {
-    toast.error("User not loaded");
+    toast.error("Please log in first");
     return;
   }
 
   setJoiningId(tournament.id);
-
+    
+  // Direct Supabase call
   const { data, error } = await joinTournamentAPI({
-    supabase_id: user.id,
+    user_id: user.id,
     registration_code: tournament.join_code,
   });
 
