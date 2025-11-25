@@ -1,6 +1,6 @@
 [build]
-  base = "tournament-hub-main"
-  publish = "tournament-hub-main/dist"
+  base = "."
+  publish = "dist"
   command = "npm run build"
 
 [[redirects]]
