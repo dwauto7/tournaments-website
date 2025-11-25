@@ -10,6 +10,11 @@ export interface CreateUserData {
   handicap?: number;
 }
 
+export interface ViewTournamentData {
+  tournament_id: string;
+  supabase_id: string;
+}
+
 export interface CreateTournamentData {
   created_by: string;
   name: string;
@@ -31,10 +36,6 @@ export interface ContactData {
   name: string;
   email: string;
   message: string;
-}
-
-export interface FetchJoinedTournamentsData {
-  supabase_id: string;
 }
 
 /**
@@ -136,7 +137,7 @@ export async function submitContactAPI(data: ContactData) {
 /**
  * Fetch tournaments the user has joined via n8n webhook
  */
-export async function fetchJoinedTournamentsAPI(data: FetchJoinedTournamentsData) {
+export async function viewTournamentAPI(data: ViewTournamentData) {
   try {
     const response = await fetch(`${N8N_BASE_URL}/view-tournament`, {
       method: "POST",
@@ -148,13 +149,25 @@ export async function fetchJoinedTournamentsAPI(data: FetchJoinedTournamentsData
 
     const result = await response.json();
 
-    if (!result.success) {
-      return { success: false, tournaments: [] };
+    if (!result?.success) {
+      return { 
+        data: null, 
+        error: { message: result?.message || "Failed to fetch tournament details" } 
+      };
     }
 
-    return result;
+    // Expected result shape from n8n:
+    // {
+    //   success: true,
+    //   tournament: { id, name, description, start_datetime, ... },
+    //   participants: [ { name, email, ... }, ... ]
+    // }
+    return { data: result, error: null };
   } catch (error) {
-    console.error("Error fetching joined tournaments:", error);
-    return { success: false, tournaments: [] };
+    console.error("Error fetching tournament details:", error);
+    return { 
+      data: null, 
+      error: { message: "Network error while fetching tournament" } 
+    };
   }
 }
