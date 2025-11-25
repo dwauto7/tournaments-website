@@ -258,8 +258,10 @@ export async function joinTournamentByCodeAPI(userId: string, registrationCode: 
 /**
  * Get tournament details with participants
  */
-export async function viewTournamentAPI(tournamentId: string, userId: string) {
+export async function viewTournamentAPI(tournamentId: string) {
   try {
+    console.log("🔍 Fetching tournament:", tournamentId);
+
     // Get tournament details
     const { data: tournament, error: tournamentError } = await supabase
       .from("tournaments")
@@ -268,14 +270,25 @@ export async function viewTournamentAPI(tournamentId: string, userId: string) {
       .single();
 
     if (tournamentError) {
+      console.error("❌ Tournament error:", tournamentError);
       return { data: null, error: tournamentError };
     }
 
+    if (!tournament) {
+      console.error("❌ Tournament not found");
+      return { data: null, error: { message: "Tournament not found" } };
+    }
+
+    console.log("✅ Tournament found:", tournament);
+
     // Get participants with user details
-    const { data: participants, error: participantsError } = await supabase
+    const { data: participantRecords, error: participantsError } = await supabase
       .from("tournament_participants")
       .select(`
-        *,
+        id,
+        user_id,
+        joined_at,
+        group_assignment,
         users (
           id,
           name,
@@ -287,19 +300,35 @@ export async function viewTournamentAPI(tournamentId: string, userId: string) {
       .eq("tournament_id", tournamentId);
 
     if (participantsError) {
-      return { data: null, error: participantsError };
+      console.error("❌ Participants error:", participantsError);
+      // Don't fail if participants fetch fails, just return empty array
+      return {
+        data: {
+          success: true,
+          tournament,
+          participants: [],
+        },
+        error: null,
+      };
     }
+
+    console.log("✅ Participants found:", participantRecords?.length || 0);
+
+    // Extract user data from participant records
+    const participants = participantRecords
+      ?.filter(p => p.users) // Filter out any null users
+      .map(p => p.users) || [];
 
     return {
       data: {
         success: true,
         tournament,
-        participants: participants.map(p => p.users),
+        participants,
       },
       error: null,
     };
   } catch (error) {
-    console.error("Exception viewing tournament:", error);
+    console.error("❌ Exception viewing tournament:", error);
     return { data: null, error };
   }
 }
