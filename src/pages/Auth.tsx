@@ -9,12 +9,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
+import { createUserAPI } from "@/lib/api";
 
 const Auth = () => {
   const [loading, setLoading] = useState(false);
+  const [isLogin, setIsLogin] = useState(true);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [fullName, setFullName] = useState("");
+  const [name, setname] = useState("");
   const [phone, setPhone] = useState("");
   const [handicap, setHandicap] = useState("");
   const navigate = useNavigate();
@@ -65,7 +68,7 @@ const Auth = () => {
 
     // Prepare user metadata with all fields
     const userMetadata: any = {
-      full_name: fullName,
+      name: name,
       phone,
     };
 
