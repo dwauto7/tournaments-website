@@ -301,14 +301,26 @@ const Dashboard = () => {
         <div>
           <h2 className="text-2xl font-bold mb-4">Tournaments I Joined</h2>
 
-          {joinedTournaments.length === 0 ? (
-            <Card className="shadow-card border-dashed">
-              <CardContent className="py-16 text-center">
-                <div className="flex justify-center mb-4">
-                  <div className="p-4 bg-accent/10 rounded-full">
-                    <Users className="h-12 w-12 text-accent" />
-                  </div>
-                </div>
-                <h3 className="text-xl font-semibold mb-2">No tournaments joined yet</h3>
-                <p className="text-muted-foreground mb-6 max-w-sm mx-auto"</p>
-                  Discover
+         {joinedTournaments.length === 0 ? (
+  <Card className="shadow-card border-dashed">
+    <CardContent className="py-16 text-center">
+      <div className="flex justify-center mb-4">
+        <div className="p-4 bg-accent/10 rounded-full">
+          <Users className="h-12 w-12 text-accent" />
+        </div>
+      </div>
+      <h3 className="text-xl font-semibold mb-2">No tournaments joined yet</h3>
+      <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
+        Discover exciting tournaments and join the competition
+      </p>
+      <Link to="/join-tournament">
+        <Button size="lg" variant="outline" className="gap-2">
+          <Users className="h-5 w-5" />
+          Browse Tournaments
+        </Button>
+      </Link>
+    </CardContent>
+  </Card>
+) : (
+  // ... rest of the joined tournaments display
+)}
