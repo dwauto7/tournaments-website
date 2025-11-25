@@ -328,26 +328,3 @@ const TournamentDetails = () => {
 };
 
 export default TournamentDetails;
-```
-
----
-
-## 🔍 **Key Changes Made**
-
-1. **✅ Direct Supabase Query** - Instead of using `viewTournamentAPI()`, we query Supabase directly for more reliable results
-2. **✅ Proper Participant Extraction** - Fixed the mapping from `participantRecords` to actual user data
-3. **✅ Real-time Count** - Uses `participants.length` from the actual fetched data
-4. **✅ Better Error Handling** - Shows specific console logs to debug issues
-
----
-
-## 🧪 **Test This**
-
-1. **Deploy the changes** to Vercel (push to GitHub)
-2. **Open browser console** (F12 → Console)
-3. **Navigate to a tournament** from the dashboard
-4. **Look for these logs:**
-```
-   🔍 Fetching tournament: [tournament-id]
-   ✅ Tournament found: [tournament data]
-   ✅ Participants found: 2
