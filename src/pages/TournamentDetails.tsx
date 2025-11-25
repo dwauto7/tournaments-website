@@ -1,70 +1,76 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useAuth } from "@/hooks/useAuth";
-import { toast } from "sonner";
-import { Calendar, Loader2, MapPin, Copy, Users } from "lucide-react";
-import { format } from "date-fns";
 import { viewTournamentAPI } from "@/lib/api";
+import { toast } from "sonner";
+import { Calendar, Users, Trophy, Loader2, MapPin, ArrowLeft, Clock } from "lucide-react";
+import { format } from "date-fns";
+
+interface Participant {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  handicap: number | null;
+}
 
 interface Tournament {
   id: string;
   title: string;
   description: string | null;
-  location: string | null;
-  join_code: string | null;
+  game: string;
+  location: string;
+  max_participants: number;
   start_datetime: string;
-  is_creator: boolean;
-}
-
-interface Participant {
-  profiles: {
-    full_name: string | null;
-  };
+  end_datetime: string | null;
+  status: string;
+  prize_pool: string | null;
+  rules: string | null;
+  registration_code: string;
+  created_by: string;
 }
 
 const TournamentDetails = () => {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!id) return;
-    fetchTournamentDetails();
-  }, [id]);
+    if (id && user) {
+      fetchTournamentDetails();
+    }
+  }, [id, user]);
 
   const fetchTournamentDetails = async () => {
     if (!id || !user) return;
-    
-    const { data, error } = await viewTournamentAPI({
-      tournament_id: id,
-      supabase_id: user.id,
-    });
 
-    if (error || !data?.tournament) {
+    setLoading(true);
+    const { data, error } = await viewTournamentAPI(id);
+
+    if (error || !data) {
       console.error("Error fetching tournament:", error);
-      toast.error("Failed to load tournament");
-      setLoading(false);
+      toast.error("Tournament not found");
+      navigate("/dashboard");
       return;
     }
 
-    setTournament({
-      ...data.tournament,
-      is_creator: data.tournament.created_by === user.id,
-    });
+    setTournament(data.tournament);
     setParticipants(data.participants || []);
     setLoading(false);
   };
 
-  const copyJoinCode = () => {
-    if (tournament?.join_code) {
-      navigator.clipboard.writeText(tournament.join_code);
-      toast.success("Join code copied!");
+  const copyCode = () => {
+    if (tournament?.registration_code) {
+      navigator.clipboard.writeText(tournament.registration_code);
+      toast.success("Registration code copied!");
     }
   };
 
@@ -83,8 +89,19 @@ const TournamentDetails = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <div className="container mx-auto px-4 pt-24 text-center">
-          <p className="text-xl">Tournament not found</p>
+        <div className="container mx-auto px-4 pt-24">
+          <Card>
+            <CardContent className="py-16 text-center">
+              <Trophy className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+              <h2 className="text-2xl font-bold mb-2">Tournament Not Found</h2>
+              <p className="text-muted-foreground mb-6">
+                This tournament doesn't exist or has been removed
+              </p>
+              <Button onClick={() => navigate("/dashboard")}>
+                Return to Dashboard
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
     );
@@ -93,100 +110,168 @@ const TournamentDetails = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      
+
       <div className="container mx-auto px-4 pt-24 pb-12">
-        <div className="max-w-4xl mx-auto space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-3xl">{tournament.title}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Start Date */}
+        <Button
+          variant="ghost"
+          onClick={() => navigate("/dashboard")}
+          className="mb-6"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Dashboard
+        </Button>
+
+        {/* Tournament Header */}
+        <Card className="shadow-card mb-6">
+          <CardHeader>
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-3">
+                  <Badge className="bg-primary">{tournament.status}</Badge>
+                  <div className="flex items-center gap-2 p-2 bg-muted rounded">
+                    <code className="text-sm font-mono font-semibold">
+                      {tournament.registration_code}
+                    </code>
+                    <Button size="sm" variant="ghost" onClick={copyCode}>
+                      Copy
+                    </Button>
+                  </div>
+                </div>
+                <CardTitle className="text-3xl mb-2">{tournament.title}</CardTitle>
+                <CardDescription className="text-lg">
+                  {tournament.description || `${tournament.game} Tournament`}
+                </CardDescription>
+              </div>
+              <Trophy className="h-12 w-12 text-primary" />
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid md:grid-cols-2 gap-4">
               <div className="flex items-center gap-3">
-                <Calendar className="h-5 w-5 text-primary" />
+                <div className="p-2 bg-primary/10 rounded">
+                  <Trophy className="h-5 w-5 text-primary" />
+                </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Start Date & Time</p>
+                  <p className="text-sm text-muted-foreground">Game</p>
+                  <p className="font-semibold">{tournament.game}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-primary/10 rounded">
+                  <MapPin className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Location</p>
+                  <p className="font-semibold">{tournament.location}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-primary/10 rounded">
+                  <Calendar className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Start Date</p>
                   <p className="font-semibold">
-                    {format(new Date(tournament.start_datetime), "MMM dd, yyyy 'at' HH:mm")}
+                    {format(new Date(tournament.start_datetime), "MMM dd, yyyy HH:mm")}
                   </p>
                 </div>
               </div>
 
-              {/* Description */}
-              {tournament.description && (
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Description</p>
-                  <p>{tournament.description}</p>
-                </div>
-              )}
-
-              {/* Location */}
-              {tournament.location && (
+              {tournament.end_datetime && (
                 <div className="flex items-center gap-3">
-                  <MapPin className="h-5 w-5 text-primary" />
+                  <div className="p-2 bg-primary/10 rounded">
+                    <Clock className="h-5 w-5 text-primary" />
+                  </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Location</p>
-                    <p className="font-semibold">{tournament.location}</p>
+                    <p className="text-sm text-muted-foreground">End Date</p>
+                    <p className="font-semibold">
+                      {format(new Date(tournament.end_datetime), "MMM dd, yyyy HH:mm")}
+                    </p>
                   </div>
                 </div>
               )}
 
-              {/* Join Code */}
-              {tournament.join_code && (
-                <div className="flex items-center gap-2 p-4 bg-secondary/50 rounded-lg">
-                  <div className="flex-1">
-                    <p className="text-sm text-muted-foreground mb-1">Join Code</p>
-                    <p className="font-mono text-xl font-bold">{tournament.join_code}</p>
-                  </div>
-                  <Button size="sm" variant="outline" onClick={copyJoinCode}>
-                    <Copy className="h-4 w-4 mr-2" />
-                    Copy Code
-                  </Button>
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-primary/10 rounded">
+                  <Users className="h-5 w-5 text-primary" />
                 </div>
-              )}
-
-              {/* Manage Participants - Only for creator */}
-              {tournament.is_creator && (
-                <div className="pt-4 border-t">
-                  <Button variant="secondary" disabled>
-                    Manage Participants (Coming Soon)
-                  </Button>
+                <div>
+                  <p className="text-sm text-muted-foreground">Participants</p>
+                  <p className="font-semibold">
+                    {participants.length} / {tournament.max_participants}
+                  </p>
                 </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Participants List */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-primary" />
-                <CardTitle>Participants ({participants.length})</CardTitle>
               </div>
-            </CardHeader>
-            <CardContent>
-              {participants.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">
-                  No participants yet
-                </p>
-              ) : (
-                <div className="space-y-2">
-                  {participants.map((participant, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center gap-3 p-3 rounded-lg bg-secondary/30"
-                    >
-                      <Badge variant="outline">#{index + 1}</Badge>
-                      <p className="font-medium">
-                        {participant.profiles.full_name || "Anonymous"}
-                      </p>
-                    </div>
-                  ))}
+
+              {tournament.prize_pool && (
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-accent/10 rounded">
+                    <Trophy className="h-5 w-5 text-accent" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Prize Pool</p>
+                    <p className="font-semibold">{tournament.prize_pool}</p>
+                  </div>
                 </div>
               )}
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+
+            {tournament.rules && (
+              <div className="pt-4 border-t">
+                <h3 className="font-semibold mb-2">Rules & Regulations</h3>
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                  {tournament.rules}
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Participants Table */}
+        <Card className="shadow-card">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Participants ({participants.length})
+            </CardTitle>
+            <CardDescription>
+              List of all players registered for this tournament
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {participants.length === 0 ? (
+              <div className="text-center py-12">
+                <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                <p className="text-muted-foreground">No participants yet</p>
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>#</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Phone</TableHead>
+                    <TableHead>Handicap</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {participants.map((participant, index) => (
+                    <TableRow key={participant.id}>
+                      <TableCell className="font-medium">{index + 1}</TableCell>
+                      <TableCell>{participant.name}</TableCell>
+                      <TableCell>{participant.email}</TableCell>
+                      <TableCell>{participant.phone || "-"}</TableCell>
+                      <TableCell>{participant.handicap ?? "-"}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
