@@ -48,7 +48,6 @@ export async function createUserAPI(data: CreateUserData) {
         email: data.email,
         phone: data.phone,
         handicap: data.handicap,
-        created_at: new Date().toISOString(),
       })
       .select()
       .single();
@@ -110,7 +109,6 @@ export async function createTournamentAPI(data: CreateTournamentData) {
         rules: data.rules,
         created_by: data.created_by,
         registration_code: registrationCode,
-        created_at: new Date().toISOString(),
       })
       .select()
       .single();
@@ -172,7 +170,6 @@ export async function joinTournamentAPI(data: JoinTournamentData) {
       .insert({
         tournament_id: data.tournament_id,
         user_id: data.user_id,
-        joined_at: new Date().toISOString(),
       })
       .select()
       .single();
@@ -336,7 +333,6 @@ export async function submitContactAPI(data: ContactData) {
       name: data.name.trim(),
       email: data.email.trim().toLowerCase(),
       message: data.message.trim(),
-      created_at: new Date().toISOString(),
     });
 
     if (error) {
