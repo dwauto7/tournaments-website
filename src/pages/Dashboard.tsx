@@ -180,7 +180,7 @@ const Dashboard = () => {
         {/* Header with Stats */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2">Dashboard</h1>
-          <p className="text-muted-foreground mb-6">Welcome back! Here's your tournament overview.</p>
+          <p className="text-4xl font-bold mb-4">Welcome, {user?.user_metadata?.name || user?.email?.split('@')[0]}!</p>
           
           <div className="flex items-center gap-4 p-4 bg-gradient-card rounded-lg border border-border shadow-card">
             <div className="flex items-center gap-2">
