@@ -13,13 +13,12 @@ import { createUserAPI } from "@/lib/api";
 
 const Auth = () => {
   const [loading, setLoading] = useState(false);
-  const [isLogin, setIsLogin] = useState(true);
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setname] = useState("");
+  const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [handicap, setHandicap] = useState("");
+  
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
 
@@ -33,71 +32,101 @@ const Auth = () => {
     e.preventDefault();
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
 
-    if (error) {
-      toast.error(error.message);
-    } else {
+      if (error) throw error;
+
       toast.success("Logged in successfully!");
       navigate("/dashboard");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to log in");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validation
+    if (!name.trim()) {
+      toast.error("Name is required");
+      return;
+    }
+
+    if (!phone.trim()) {
+      toast.error("Phone number is required");
+      return;
+    }
+
+    // Validate phone format (E.164)
+    if (!phone.match(/^\+\d{10,15}$/)) {
+      toast.error("Phone must be in E.164 format (e.g., +60123456789)");
+      return;
+    }
+
     setLoading(true);
 
-    // Check if user already exists in profiles
-    const { data: existingProfile } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("email", email)
-      .maybeSingle();
+    try {
+      console.log("🚀 Starting signup process...");
 
-    if (existingProfile) {
-      toast.error("An account with this email already exists");
-      setLoading(false);
-      return;
-    }
+      // Step 1: Create auth user
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: email.trim(),
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          data: {
+            name: name.trim(),
+            phone: phone.trim(),
+          }
+        }
+      });
 
-    const redirectUrl = `${window.location.origin}/`;
+      if (authError) throw authError;
 
-    // Prepare user metadata with all fields
-    const userMetadata: any = {
-      name: name,
-      phone,
-    };
-
-    // Add handicap if provided
-    if (handicap.trim()) {
-      const handicapNum = parseFloat(handicap);
-      if (!isNaN(handicapNum)) {
-        userMetadata.handicap = handicapNum;
+      if (!authData.user) {
+        throw new Error("Failed to create user account");
       }
-    }
 
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: userMetadata,
-      },
-    });
+      console.log("✅ Auth user created:", authData.user.id);
 
-    if (error) {
-      toast.error(error.message);
+      // Step 2: Create profile in public.users table
+      const { data: profileData, error: profileError } = await createUserAPI({
+        supabase_id: authData.user.id,
+        name: name.trim(),
+        email: email.trim(),
+        phone: phone.trim(),
+        handicap: handicap ? parseInt(handicap) : undefined,
+      });
+
+      if (profileError) {
+        console.error("❌ Failed to create user profile:", profileError);
+        toast.error("Account created but profile setup failed. Please contact support.");
+        return;
+      }
+
+      console.log("✅ User profile created:", profileData);
+
+      toast.success("Account created! Please check your email to confirm.");
+
+      // Clear form
+      setName("");
+      setPhone("");
+      setHandicap("");
+      setEmail("");
+      setPassword("");
+
+    } catch (error: any) {
+      console.error("❌ Signup error:", error);
+      toast.error(error.message || "Failed to create account");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    toast.success("Account created successfully!");
-    navigate("/dashboard");
-    setLoading(false);
   };
 
   if (authLoading) {
@@ -123,7 +152,7 @@ const Auth = () => {
               <TabsTrigger value="login">Login</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="login">
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
@@ -164,18 +193,18 @@ const Auth = () => {
             <TabsContent value="signup">
               <form onSubmit={handleSignup} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="signup-name">Full Name</Label>
+                  <Label htmlFor="signup-name">Full Name *</Label>
                   <Input
                     id="signup-name"
                     type="text"
                     placeholder="John Doe"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-email">Email</Label>
+                  <Label htmlFor="signup-email">Email *</Label>
                   <Input
                     id="signup-email"
                     type="email"
@@ -186,7 +215,7 @@ const Auth = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-phone">Phone (E.164 format)</Label>
+                  <Label htmlFor="signup-phone">Phone (E.164 format) *</Label>
                   <Input
                     id="signup-phone"
                     type="tel"
@@ -195,6 +224,9 @@ const Auth = () => {
                     onChange={(e) => setPhone(e.target.value)}
                     required
                   />
+                  <p className="text-xs text-muted-foreground">
+                    Format: +[country code][number] (e.g., +60123456789)
+                  </p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="signup-handicap">Handicap (Optional)</Label>
@@ -208,7 +240,7 @@ const Auth = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-password">Password</Label>
+                  <Label htmlFor="signup-password">Password *</Label>
                   <Input
                     id="signup-password"
                     type="password"
