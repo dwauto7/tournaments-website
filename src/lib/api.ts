@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 
-const N8N_BASE_URL = "https://n8n.aiblizzard.work/webhook";
+// ==================== TYPES ====================
 
 export interface CreateUserData {
   supabase_id: string;
@@ -10,14 +10,9 @@ export interface CreateUserData {
   handicap?: number;
 }
 
-export interface ViewTournamentData {
-  tournament_id: string;
-  supabase_id: string;
-}
-
 export interface CreateTournamentData {
   created_by: string;
-  name: string;
+  title: string;
   description?: string;
   start_datetime: string;
   location: string;
@@ -28,8 +23,8 @@ export interface CreateTournamentData {
 }
 
 export interface JoinTournamentData {
-  supabase_id: string;
-  registration_code: string;
+  user_id: string;
+  tournament_id: string;
 }
 
 export interface ContactData {
@@ -38,83 +33,302 @@ export interface ContactData {
   message: string;
 }
 
+// ==================== USER OPERATIONS ====================
+
 /**
- * Create user in Airtable via n8n webhook
+ * Create user profile in Supabase (called after auth.signUp)
  */
 export async function createUserAPI(data: CreateUserData) {
   try {
-    const response = await fetch(`${N8N_BASE_URL}/create-user`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
+    const { data: user, error } = await supabase
+      .from("users")
+      .insert({
+        id: data.supabase_id,
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        handicap: data.handicap,
+        created_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
 
-    const result = await response.json();
-
-    if (!result.success) {
-      return { data: null, error: { message: "Failed to create new user" } };
+    if (error) {
+      console.error("Error creating user:", error);
+      return { data: null, error };
     }
 
-    return { data: result, error: null };
+    return { data: { success: true, user }, error: null };
   } catch (error) {
+    console.error("Exception creating user:", error);
     return { data: null, error };
   }
 }
 
 /**
- * Create a new tournament via n8n webhook
+ * Get user profile by ID
+ */
+export async function getUserProfile(userId: string) {
+  try {
+    const { data, error } = await supabase
+      .from("users")
+      .select("*")
+      .eq("id", userId)
+      .single();
+
+    if (error) {
+      return { data: null, error };
+    }
+
+    return { data, error: null };
+  } catch (error) {
+    return { data: null, error };
+  }
+}
+
+// ==================== TOURNAMENT OPERATIONS ====================
+
+/**
+ * Create a new tournament (Direct Supabase)
  */
 export async function createTournamentAPI(data: CreateTournamentData) {
   try {
-    const response = await fetch(`${N8N_BASE_URL}/create-tournament`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
+    // Generate unique registration code
+    const registrationCode = `${data.game.substring(0, 4).toUpperCase()}-${Math.floor(Math.random() * 9000) + 1000}`;
 
-    const result = await response.json();
+    const { data: tournament, error } = await supabase
+      .from("tournaments")
+      .insert({
+        title: data.title,
+        description: data.description,
+        game: data.game,
+        location: data.location,
+        max_participants: data.max_participants,
+        start_datetime: data.start_datetime,
+        status: "upcoming",
+        prize_pool: data.prize_pool,
+        rules: data.rules,
+        created_by: data.created_by,
+        registration_code: registrationCode,
+        created_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
 
-    if (!result.success) {
-      return { data: null, error: { message: "Failed to create tournament" } };
+    if (error) {
+      console.error("Error creating tournament:", error);
+      return { data: null, error };
     }
 
-    return { data: result, error: null };
+    return { data: { success: true, tournament }, error: null };
   } catch (error) {
+    console.error("Exception creating tournament:", error);
     return { data: null, error };
   }
 }
 
 /**
- * Join a tournament by code via n8n webhook
+ * Join a tournament by registration code
  */
 export async function joinTournamentAPI(data: JoinTournamentData) {
   try {
-    const response = await fetch(`${N8N_BASE_URL}/join-tournament`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
+    // Check if already joined
+    const { data: existing } = await supabase
+      .from("tournament_participants")
+      .select("*")
+      .eq("user_id", data.user_id)
+      .eq("tournament_id", data.tournament_id)
+      .single();
 
-    const result = await response.json();
-
-    if (!result.success) {
-      return { data: null, error: { message: result.message || "Failed to join tournament" } };
+    if (existing) {
+      return { 
+        data: null, 
+        error: { message: "You have already joined this tournament" } 
+      };
     }
 
-    return { data: result, error: null };
+    // Check tournament capacity
+    const { count } = await supabase
+      .from("tournament_participants")
+      .select("*", { count: "exact", head: true })
+      .eq("tournament_id", data.tournament_id);
+
+    const { data: tournament } = await supabase
+      .from("tournaments")
+      .select("max_participants")
+      .eq("id", data.tournament_id)
+      .single();
+
+    if (count && tournament && count >= tournament.max_participants) {
+      return { 
+        data: null, 
+        error: { message: "Tournament is full" } 
+      };
+    }
+
+    // Join tournament
+    const { data: participant, error } = await supabase
+      .from("tournament_participants")
+      .insert({
+        tournament_id: data.tournament_id,
+        user_id: data.user_id,
+        joined_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error joining tournament:", error);
+      return { data: null, error };
+    }
+
+    return { data: { success: true, participant }, error: null };
+  } catch (error) {
+    console.error("Exception joining tournament:", error);
+    return { data: null, error };
+  }
+}
+
+/**
+ * Join tournament by registration code
+ */
+export async function joinTournamentByCodeAPI(userId: string, registrationCode: string) {
+  try {
+    // Find tournament by code
+    const { data: tournament, error: tournamentError } = await supabase
+      .from("tournaments")
+      .select("id, max_participants, status")
+      .eq("registration_code", registrationCode.toUpperCase())
+      .single();
+
+    if (tournamentError || !tournament) {
+      return { 
+        data: null, 
+        error: { message: "Invalid registration code" } 
+      };
+    }
+
+    if (tournament.status !== "upcoming") {
+      return { 
+        data: null, 
+        error: { message: "Tournament is not open for registration" } 
+      };
+    }
+
+    // Use the main join function
+    return await joinTournamentAPI({
+      user_id: userId,
+      tournament_id: tournament.id,
+    });
+  } catch (error) {
+    console.error("Exception joining by code:", error);
+    return { data: null, error };
+  }
+}
+
+/**
+ * Get tournament details with participants
+ */
+export async function viewTournamentAPI(tournamentId: string, userId: string) {
+  try {
+    // Get tournament details
+    const { data: tournament, error: tournamentError } = await supabase
+      .from("tournaments")
+      .select("*")
+      .eq("id", tournamentId)
+      .single();
+
+    if (tournamentError) {
+      return { data: null, error: tournamentError };
+    }
+
+    // Get participants with user details
+    const { data: participants, error: participantsError } = await supabase
+      .from("tournament_participants")
+      .select(`
+        *,
+        users (
+          id,
+          name,
+          email,
+          phone,
+          handicap
+        )
+      `)
+      .eq("tournament_id", tournamentId);
+
+    if (participantsError) {
+      return { data: null, error: participantsError };
+    }
+
+    return {
+      data: {
+        success: true,
+        tournament,
+        participants: participants.map(p => p.users),
+      },
+      error: null,
+    };
+  } catch (error) {
+    console.error("Exception viewing tournament:", error);
+    return { data: null, error };
+  }
+}
+
+/**
+ * List all upcoming tournaments
+ */
+export async function listTournamentsAPI(userId?: string) {
+  try {
+    let query = supabase
+      .from("tournaments")
+      .select("*, tournament_participants(count)")
+      .eq("status", "upcoming")
+      .order("start_datetime", { ascending: true });
+
+    const { data, error } = await query;
+
+    if (error) {
+      return { data: null, error };
+    }
+
+    return { data, error: null };
   } catch (error) {
     return { data: null, error };
   }
 }
 
 /**
- * Submit a contact message via direct Supabase insert
+ * List tournaments user has joined
+ */
+export async function listMyTournamentsAPI(userId: string) {
+  try {
+    const { data, error } = await supabase
+      .from("tournament_participants")
+      .select(`
+        *,
+        tournaments (*)
+      `)
+      .eq("user_id", userId)
+      .order("joined_at", { ascending: false });
+
+    if (error) {
+      return { data: null, error };
+    }
+
+    return { 
+      data: data.map(item => item.tournaments),
+      error: null 
+    };
+  } catch (error) {
+    return { data: null, error };
+  }
+}
+
+// ==================== CONTACT ====================
+
+/**
+ * Submit a contact message
  */
 export async function submitContactAPI(data: ContactData) {
   try {
@@ -122,6 +336,7 @@ export async function submitContactAPI(data: ContactData) {
       name: data.name.trim(),
       email: data.email.trim().toLowerCase(),
       message: data.message.trim(),
+      created_at: new Date().toISOString(),
     });
 
     if (error) {
@@ -131,43 +346,5 @@ export async function submitContactAPI(data: ContactData) {
     return { data: { success: true }, error: null };
   } catch (error) {
     return { data: null, error };
-  }
-}
-
-/**
- * Fetch tournaments the user has joined via n8n webhook
- */
-export async function viewTournamentAPI(data: ViewTournamentData) {
-  try {
-    const response = await fetch(`${N8N_BASE_URL}/view-tournament`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
-
-    const result = await response.json();
-
-    if (!result?.success) {
-      return { 
-        data: null, 
-        error: { message: result?.message || "Failed to fetch tournament details" } 
-      };
-    }
-
-    // Expected result shape from n8n:
-    // {
-    //   success: true,
-    //   tournament: { id, name, description, start_datetime, ... },
-    //   participants: [ { name, email, ... }, ... ]
-    // }
-    return { data: result, error: null };
-  } catch (error) {
-    console.error("Error fetching tournament details:", error);
-    return { 
-      data: null, 
-      error: { message: "Network error while fetching tournament" } 
-    };
   }
 }
