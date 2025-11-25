@@ -101,7 +101,7 @@ const JoinTournament = () => {
   // Direct Supabase call
   const { data, error } = await joinTournamentAPI({
     user_id: user.id,
-    registration_code: tournament.join_code,
+    tournament_id: tournament.id,
   });
 
   if (error) {
