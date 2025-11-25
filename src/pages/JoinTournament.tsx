@@ -13,7 +13,7 @@ import { useTournamentRefresh } from "@/contexts/TournamentRefreshContext";
 import { toast } from "sonner";
 import { Calendar, Users, Trophy, Loader2, Search, MapPin } from "lucide-react";
 import { format } from "date-fns";
-import { joinTournamentAPI } from "@/lib/api";
+import { joinTournamentAPI, joinTournamentByCodeAPI } from "@/lib/api";
 
 interface Tournament {
   id: string;
@@ -78,8 +78,8 @@ const JoinTournament = () => {
       .from("tournaments")
       .select("*")
       .eq("status", "upcoming")
-      .not("id", "in", `(${joinedIds.join(",") || "00000000-0000-0000-0000-000000000000"})`)
-      .order("start_date", { ascending: true });
+      .not("id", "in", joinedIds.length ? joinedIds : ["00000000-0000-0000-0000-000000000000"])
+      .order("start_datetime", { ascending: true });
 
     if (error) {
       console.error("Error fetching tournaments:", error);
@@ -258,7 +258,7 @@ const handleJoinByCode = async () => {
                   <div className="flex gap-2 mt-4">
                     <Button
                       className="flex-1"
-                      onClick={() => handleJoin(tournament.id)}
+                      onClick={() => handleJoin(tournament)}
                       disabled={joiningId === tournament.id}
                     >
                       {joiningId === tournament.id ? (
