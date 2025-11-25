@@ -54,7 +54,7 @@ export async function createUserAPI(data: CreateUserData) {
     const result = await response.json();
 
     if (!result.success) {
-      return { data: null, error: { message: "Failed to create user in Airtable" } };
+      return { data: null, error: { message: "Failed to create new user" } };
     }
 
     return { data: result, error: null };
