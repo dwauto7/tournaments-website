@@ -123,10 +123,8 @@ const handleJoinByCode = async () => {
 
   setJoiningByCode(true);
 
-  const { data, error } = await joinTournamentAPI({
-    supabase_id: user.id,
-    registration_code: joinCode.trim().toUpperCase(),
-  });
+ // Direct Supabase call with code
+  const { data, error } = await joinTournamentByCodeAPI(user.id, joinCode.trim());
 
   if (error) {
     toast.error(error.message || "Failed to join tournament");
