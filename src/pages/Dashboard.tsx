@@ -297,30 +297,71 @@ const Dashboard = () => {
           )}
         </div>
 
-        {/* Tournaments I Joined */}
-        <div>
-          <h2 className="text-2xl font-bold mb-4">Tournaments I Joined</h2>
+       {/* Tournaments I Joined */}
+<div>
+  <h2 className="text-2xl font-bold mb-4">Tournaments I Joined</h2>
 
-         {joinedTournaments.length === 0 ? (
-  <Card className="shadow-card border-dashed">
-    <CardContent className="py-16 text-center">
-      <div className="flex justify-center mb-4">
-        <div className="p-4 bg-accent/10 rounded-full">
-          <Users className="h-12 w-12 text-accent" />
+  {joinedTournaments.length === 0 ? (
+    <Card className="shadow-card border-dashed">
+      <CardContent className="py-16 text-center">
+        <div className="flex justify-center mb-4">
+          <div className="p-4 bg-accent/10 rounded-full">
+            <Users className="h-12 w-12 text-accent" />
+          </div>
         </div>
-      </div>
-      <h3 className="text-xl font-semibold mb-2">No tournaments joined yet</h3>
-      <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
-        Discover exciting tournaments and join the competition
-      </p>
-      <Link to="/join-tournament">
-        <Button size="lg" variant="outline" className="gap-2">
-          <Users className="h-5 w-5" />
-          Browse Tournaments
-        </Button>
-      </Link>
-    </CardContent>
-  </Card>
-) : (
-  // ... rest of the joined tournaments display
-)}
+        <h3 className="text-xl font-semibold mb-2">No tournaments joined yet</h3>
+        <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
+          Discover exciting tournaments and join the competition
+        </p>
+        <Link to="/join-tournament">
+          <Button size="lg" variant="outline" className="gap-2">
+            <Users className="h-5 w-5" />
+            Browse Tournaments
+          </Button>
+        </Link>
+      </CardContent>
+    </Card>
+  ) : (
+    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {joinedTournaments.map((tournament) => (
+        <Card key={tournament.id} className="shadow-card hover:shadow-hover transition-all">
+          <CardHeader>
+            <div className="flex items-center justify-between mb-2">
+              <Badge className={getStatusColor(tournament.status)}>
+                {tournament.status}
+              </Badge>
+              <code className="text-xs font-mono px-2 py-1 bg-muted rounded">
+                {tournament.registration_code}
+              </code>
+            </div>
+            <CardTitle className="line-clamp-1">{tournament.title}</CardTitle>
+            <CardDescription className="line-clamp-2">
+              {tournament.description || tournament.game}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Calendar className="h-4 w-4" />
+              {format(new Date(tournament.start_datetime), "MMM dd, yyyy HH:mm")}
+            </div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <MapPin className="h-4 w-4" />
+              {tournament.location}
+            </div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Users className="h-4 w-4" />
+              {tournament.participant_count || 0} players joined
+            </div>
+            <Button
+              className="w-full"
+              variant="outline"
+              onClick={() => navigate(`/tournament/${tournament.id}`)}
+            >
+              View Tournament
+            </Button>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  )}
+</div>
