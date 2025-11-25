@@ -98,11 +98,11 @@ const TournamentDetails = () => {
       } else {
         console.log("✅ Participants found:", participantRecords?.length || 0);
         
-        // Extract user data from participant records
         const participantList = participantRecords
-          ?.filter(p => p.users) // Filter out any null users
+          ?.filter(p => p.users)
           .map(p => p.users as Participant) || [];
         
+        console.log("✅ Participant list:", participantList);
         setParticipants(participantList);
       }
     } catch (error) {
