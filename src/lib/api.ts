@@ -15,7 +15,7 @@ export interface CreateTournamentData {
   title: string;
   description?: string;
   start_datetime: string;
-  end_datetime?: string; 
+  end_datetime?: string;
   location: string;
   prize_pool?: string;
   game: string;
@@ -96,72 +96,102 @@ export async function getUserProfile(userId: string) {
 // ==================== TOURNAMENT OPERATIONS ====================
 
 /**
+ * Generate a unique registration code
+ * Format: GAME-XXXXX (e.g., GOLF-A3F9K)
+ */
+function generateRegistrationCode(game: string): string {
+  // Use first 4 characters of game name, uppercase, letters only
+  const gamePrefix = game
+    .substring(0, 4)
+    .toUpperCase()
+    .replace(/[^A-Z]/g, '') || 'TOUR';
+  
+  // Generate 5 random alphanumeric characters (excluding similar-looking chars)
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // No I, O, 0, 1
+  let randomSuffix = "";
+  
+  for (let i = 0; i < 5; i++) {
+    randomSuffix += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  
+  // Add timestamp component for extra uniqueness (base36, last 2 chars)
+  const timestamp = Date.now().toString(36).slice(-2).toUpperCase();
+  
+  return `${gamePrefix}-${randomSuffix}${timestamp}`;
+}
+
 /**
- * Create a new tournament (Direct Supabase)
+ * Create a new tournament with retry logic for unique code generation
  */
 export async function createTournamentAPI(data: CreateTournamentData) {
-  try {
-    let registrationCode = "";
-    let isUnique = false;
-    let attempts = 0;
-    const maxAttempts = 10;
+  const maxRetries = 10;
+  let attempt = 0;
 
-    // Generate a unique registration code
-    while (!isUnique && attempts < maxAttempts) {
-      // Use first 4 chars of game + random 4 digits + random 2 letters
-      const gamePrefix = data.game.substring(0, 4).toUpperCase().replace(/[^A-Z]/g, '');
-      const randomNum = Math.floor(1000 + Math.random() * 9000); // 1000-9999
-      const randomLetters = Math.random().toString(36).substring(2, 4).toUpperCase();
+  while (attempt < maxRetries) {
+    try {
+      // Generate a unique-looking registration code
+      const registrationCode = generateRegistrationCode(data.game);
       
-      registrationCode = `${gamePrefix || 'TOUR'}-${randomNum}${randomLetters}`;
+      console.log(`🎲 Attempt ${attempt + 1}: Trying registration code "${registrationCode}"`);
 
-      // Check if code already exists
-      const { data: existing } = await supabase
+      // Attempt to insert tournament
+      const { data: tournament, error } = await supabase
         .from("tournaments")
-        .select("id")
-        .eq("registration_code", registrationCode)
+        .insert({
+          title: data.title,
+          description: data.description,
+          game: data.game,
+          location: data.location,
+          max_participants: data.max_participants,
+          start_datetime: data.start_datetime,
+          end_datetime: data.end_datetime,
+          status: "upcoming",
+          prize_pool: data.prize_pool,
+          rules: data.rules,
+          created_by: data.created_by,
+          registration_code: registrationCode,
+        })
+        .select()
         .single();
 
-      if (!existing) {
-        isUnique = true;
+      if (error) {
+        // Check if it's a duplicate key error (code 23505)
+        if (error.code === "23505" || error.message?.includes("duplicate key")) {
+          console.log(`❌ Registration code "${registrationCode}" already exists, retrying...`);
+          attempt++;
+          continue; // Try again with a new code
+        }
+        
+        // Other errors - return immediately
+        console.error("❌ Error creating tournament:", error);
+        return { data: null, error };
       }
-      attempts++;
-    }
 
-    if (!isUnique) {
-      // Fallback: use timestamp-based code
-      registrationCode = `TOUR-${Date.now().toString().slice(-8)}`;
-    }
+      // Success!
+      console.log("✅ Tournament created successfully with code:", registrationCode);
+      return { 
+        data: { 
+          success: true, 
+          registration_code: registrationCode, 
+          tournament 
+        }, 
+        error: null 
+      };
 
-    const { data: tournament, error } = await supabase
-      .from("tournaments")
-      .insert({
-        title: data.title,
-        description: data.description,
-        game: data.game,
-        location: data.location,
-        max_participants: data.max_participants,
-        start_datetime: data.start_datetime,
-        end_datetime: data.end_datetime, // ✅ ADD THIS
-        status: "upcoming",
-        prize_pool: data.prize_pool,
-        rules: data.rules,
-        created_by: data.created_by,
-        registration_code: registrationCode,
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error("Error creating tournament:", error);
+    } catch (error) {
+      console.error("❌ Exception creating tournament:", error);
       return { data: null, error };
     }
-
-    return { data: { success: true, registration_code: registrationCode, tournament }, error: null };
-  } catch (error) {
-    console.error("Exception creating tournament:", error);
-    return { data: null, error };
   }
+
+  // Failed after all retries
+  console.error("❌ Failed to generate unique registration code after", maxRetries, "attempts");
+  return { 
+    data: null, 
+    error: { 
+      message: "Failed to generate unique registration code. Please try again in a moment." 
+    } 
+  };
 }
 
 /**
