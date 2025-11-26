@@ -64,17 +64,27 @@ const handleSignup = async (e: React.FormEvent) => {
   }
 
   // Validate phone format (E.164)
-  if (!phone.match(/^\+\d{10,15}$/)) {
-    toast.error("Phone must be in E.164 format (e.g., +60123456789)");
+// Enhanced phone validation
+  let formattedPhone = phone.trim();
+  
+  // Auto-format: if user enters 0123456789, convert to +60123456789
+  if (formattedPhone.startsWith('0')) {
+    formattedPhone = '+60' + formattedPhone.substring(1);
+  } else if (formattedPhone.startsWith('60') && !formattedPhone.startsWith('+')) {
+    formattedPhone = '+' + formattedPhone;
+  } else if (!formattedPhone.startsWith('+')) {
+    formattedPhone = '+60' + formattedPhone;
+  }
+
+  // Validate E.164 format: +[1-15 digits]
+  if (!formattedPhone.match(/^\+\d{10,15}$/)) {
+    toast.error("Phone must be valid (10-15 digits after country code)");
     return;
   }
 
   setLoading(true);
 
   try {
-    console.log("🚀 Starting signup process...");
-
-    // Create auth user - database trigger will automatically create profile
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: email.trim(),
       password,
@@ -82,12 +92,12 @@ const handleSignup = async (e: React.FormEvent) => {
         emailRedirectTo: `${window.location.origin}/dashboard`,
         data: {
           name: name.trim(),
-          phone: phone.trim(),
+          phone: formattedPhone, // ← Use formatted phone
           handicap: handicap ? parseInt(handicap) : null,
         }
       }
     });
-
+    
     if (authError) throw authError;
 
     if (!authData.user) {
