@@ -49,7 +49,7 @@ const Auth = () => {
     }
   };
 
- const handleSignup = async (e: React.FormEvent) => {
+const handleSignup = async (e: React.FormEvent) => {
   e.preventDefault();
 
   // Validation
@@ -74,15 +74,16 @@ const Auth = () => {
   try {
     console.log("🚀 Starting signup process...");
 
-    // Step 1: Create auth user
+    // Create auth user - database trigger will automatically create profile
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: email.trim(),
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: `${window.location.origin}/dashboard`,
         data: {
           name: name.trim(),
           phone: phone.trim(),
+          handicap: handicap ? parseInt(handicap) : null,
         }
       }
     });
@@ -94,29 +95,7 @@ const Auth = () => {
     }
 
     console.log("✅ Auth user created:", authData.user.id);
-
-    // Step 2: Create profile in public.users table
-    const { data: profileData, error: profileError } = await createUserAPI({
-      supabase_id: authData.user.id,
-      name: name.trim(),
-      email: email.trim(),
-      phone: phone.trim(),
-      handicap: handicap ? parseInt(handicap) : undefined,
-    });
-
-    if (profileError) {
-      console.error("❌ Failed to create user profile:", profileError);
-      
-      // Show detailed error
-      const errorMsg = profileError.message || "Unknown error";
-      toast.error(`Profile setup failed: ${errorMsg}`);
-      
-      // Don't return - still show success for auth
-      toast.info("You can still log in, but please contact support to complete your profile.");
-      return;
-    }
-
-    console.log("✅ User profile created:", profileData);
+    console.log("✅ Database trigger will auto-create profile in public.users");
 
     toast.success("Account created! Please check your email to confirm.");
 
