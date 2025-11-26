@@ -96,31 +96,6 @@ export async function getUserProfile(userId: string) {
 // ==================== TOURNAMENT OPERATIONS ====================
 
 /**
- * Generate a unique registration code
- * Format: GAME-XXXXX (e.g., GOLF-A3F9K)
- */
-function generateRegistrationCode(game: string): string {
-  // Use first 4 characters of game name, uppercase, letters only
-  const gamePrefix = game
-    .substring(0, 4)
-    .toUpperCase()
-    .replace(/[^A-Z]/g, '') || 'TOUR';
-  
-  // Generate 5 random alphanumeric characters (excluding similar-looking chars)
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // No I, O, 0, 1
-  let randomSuffix = "";
-  
-  for (let i = 0; i < 5; i++) {
-    randomSuffix += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  
-  // Add timestamp component for extra uniqueness (base36, last 2 chars)
-  const timestamp = Date.now().toString(36).slice(-2).toUpperCase();
-  
-  return `${gamePrefix}-${randomSuffix}${timestamp}`;
-}
-
-/**
  * Create a new tournament - database will auto-generate unique code
  */
 export async function createTournamentAPI(data: CreateTournamentData) {
@@ -166,16 +141,6 @@ export async function createTournamentAPI(data: CreateTournamentData) {
     console.error("❌ Exception creating tournament:", error);
     return { data: null, error };
   }
-}
-
-  // Failed after all retries
-  console.error("❌ Failed to generate unique registration code after", maxRetries, "attempts");
-  return { 
-    data: null, 
-    error: { 
-      message: "Failed to generate unique registration code. Please try again in a moment." 
-    } 
-  };
 }
 
 /**
