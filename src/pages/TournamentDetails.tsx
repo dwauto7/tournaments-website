@@ -128,7 +128,9 @@ const TournamentDetails = () => {
       const { data: participantRecords, error: participantError } = await supabase
         .from("tournament_participants")
         .select("*")
-        .eq("tournament_id", tournamentId);
+        .eq("tournament_id", tournamentId)
+        .order("reminder_sent", { ascending: false }) 
+        .order("joined_at", { ascending: true });    
 
       if (participantError) {
         console.error("❌ Failed to fetch participants:", participantError);
