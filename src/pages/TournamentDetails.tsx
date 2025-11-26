@@ -74,7 +74,8 @@ const TournamentDetails = () => {
       console.log("✅ Tournament found:", tournamentData);
       setTournament(tournamentData);
 
-      // Fetch participants with user details
+      // Method 1: Try with embedded join first
+      console.log("🔍 Attempting Method 1: Embedded join...");
       const { data: participantRecords, error: participantsError } = await supabase
         .from("tournament_participants")
         .select(`
@@ -82,7 +83,7 @@ const TournamentDetails = () => {
           user_id,
           joined_at,
           group_assignment,
-          users (
+          users!inner (
             id,
             name,
             email,
@@ -93,23 +94,77 @@ const TournamentDetails = () => {
         .eq("tournament_id", id);
 
       if (participantsError) {
-        console.error("❌ Participants error:", participantsError);
-        setParticipants([]);
+        console.error("❌ Method 1 failed:", participantsError);
+        
+        // Method 2: Fallback to manual join
+        console.log("🔍 Attempting Method 2: Manual join...");
+        await fetchParticipantsManually(id);
       } else {
-        console.log("✅ Participants found:", participantRecords?.length || 0);
+        console.log("✅ Method 1 succeeded! Raw data:", participantRecords);
         
-        const participantList = participantRecords
-          ?.filter(p => p.users)
-          .map(p => p.users as Participant) || [];
-        
-        console.log("✅ Participant list:", participantList);
-        setParticipants(participantList);
+        if (participantRecords && participantRecords.length > 0) {
+          const participantList = participantRecords
+            .filter(p => p.users)
+            .map(p => p.users as Participant);
+          
+          console.log("✅ Parsed participants:", participantList);
+          setParticipants(participantList);
+        } else {
+          console.log("⚠️ No participants found");
+          setParticipants([]);
+        }
       }
     } catch (error) {
       console.error("❌ Exception:", error);
       toast.error("Failed to load tournament details");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchParticipantsManually = async (tournamentId: string) => {
+    try {
+      // Get participant records
+      const { data: participantRecords, error: participantError } = await supabase
+        .from("tournament_participants")
+        .select("*")
+        .eq("tournament_id", tournamentId);
+
+      if (participantError) {
+        console.error("❌ Failed to fetch participants:", participantError);
+        setParticipants([]);
+        return;
+      }
+
+      console.log("✅ Participant records:", participantRecords);
+
+      if (!participantRecords || participantRecords.length === 0) {
+        console.log("⚠️ No participants found");
+        setParticipants([]);
+        return;
+      }
+
+      // Get user IDs
+      const userIds = participantRecords.map(p => p.user_id);
+      console.log("🔍 Fetching users:", userIds);
+
+      // Fetch user details
+      const { data: usersData, error: usersError } = await supabase
+        .from("users")
+        .select("*")
+        .in("id", userIds);
+
+      if (usersError) {
+        console.error("❌ Failed to fetch users:", usersError);
+        setParticipants([]);
+        return;
+      }
+
+      console.log("✅ Users data:", usersData);
+      setParticipants(usersData || []);
+    } catch (error) {
+      console.error("❌ Manual fetch exception:", error);
+      setParticipants([]);
     }
   };
 
@@ -291,6 +346,9 @@ const TournamentDetails = () => {
               <div className="text-center py-12">
                 <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                 <p className="text-muted-foreground">No participants yet</p>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Check browser console for debug info
+                </p>
               </div>
             ) : (
               <div className="overflow-x-auto">
